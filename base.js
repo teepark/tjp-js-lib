@@ -88,39 +88,42 @@ com.travisjparker.base = {};
 
   var handleEvent = function(e, t) {
     var i, rv = true;
-    e = e || fixEvent(((this.ownerDocument || this.document || this).
-        parentWindow || window).event || {});
-    var hs = this.events[e.type || t];
+    try {
+      e = e || fixEvent(((this.ownerDocument || this.document || this).
+          parentWindow || window).event || {type: t});
+    } catch (err) { e = fixEvent({type: t}); }
+    var hs = events[e][e.type];
     for (i in hs) {
-      this.$$handleEvent = hs[i];
-      if (this.$$handleEvent(e) === false) rv = false;
+      this.handleEvent = hs[i];
+      if (this.handleEvent(e) === false) rv = false;
     }
-    delete this.$$handleEvent;
+    delete this.handleEvent;
     return rv;
   };
 
-  var guid = 1;
+  var guid = 1,
+      events = {};
   tjp.base.addEvent = function(e, t, h) {
     if (e.addEventListener) e.addEventListener(t, h, false);
     else {
-      if (!h.$$guid) h.$$guid = guid++;
-      if (!e.events) e.events = {};
-      var hs = e.events[t];
+      if (!h.guid) h.guid = guid++;
+      if (!events[e]) events[e] = {};
+      var hs = events[e][t];
       if (!hs) {
-        hs = e.events[t] = {};
+        hs = events[e][t] = {};
         if (e["on" + t]) hs[0] = e["on" + t];
       }
-      hs[h.$$guid] = h;
+      hs[h.guid] = h;
       e["on" + t] = function(ev) {
-        this.$$handleEvent = handleEvent;
-        return this.$$handleEvent(ev, t);
+        this.handleEvent = handleEvent;
+        return this.handleEvent(ev, t);
       };
     }
   };
 
   tjp.base.removeEvent = function(e, t, h) {
     if (e.removeEventListener) e.removeEventListener(t, h, false);
-    else if (e.events && e.events[t]) delete e.events[type][h.$$guid];
+    else if (events[e] && events[e][t]) delete events[e][type][h.guid];
   };
 
   tjp.base.dispatchEvent = function(e, t) {
