@@ -45,6 +45,8 @@ Response objects:
     headers: an object whose name/value pairs are the headers of the response
 */
 (function(tjp) {
+  tjp.http = {};
+
   tjp.http.get = function(o) {
     return tjp.http.request(tjp.base.extend(tjp.base.extend({}, o),
         {method: "GET"}));
@@ -86,8 +88,7 @@ Response objects:
     if (o.async) {
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
-          var
-            response = {
+          var response = {
               status: xhr.status,
               statusText: xhr.statusText,
               text: xhr.responseText,
@@ -104,8 +105,7 @@ Response objects:
     xhr.send(o.data);
 
     if (!o.async) {
-      var
-        response = {
+      var response = {
           status: xhr.status,
           statusText: xhr.statusText,
           text: xhr.responseText,

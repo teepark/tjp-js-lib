@@ -25,6 +25,8 @@ cookie.remove(name)
   removes the cookie with name (stores with max-age of 0)
 */
 (function(tjp) {
+  tjp.cookie = {};
+
   tjp.cookie.get = function(name) {
     var i, pairs, pair, result = {};
     pairs = document.cookie.split(";");

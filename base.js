@@ -36,9 +36,10 @@ base.dispatchEvent(targetObj, evName)
 var com;
 com = com || {};
 com.travisjparker = {};
-com.travisjparker.base = {};
 
 (function(tjp) {
+  tjp.base = {};
+
   tjp.base.extend = function(extended, extender) {
     for(var name in extender) extended[name] = extender[name];
     return extended;
