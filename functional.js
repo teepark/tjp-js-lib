@@ -38,7 +38,8 @@ functional.foldleft(wrapped, sequence)
 
   tjp.functional.foldright = function(wrapped, sequence) {
     var i, result = wrapped.call(null, sequence[0], sequence[1]);
-    for (i = 2; i < sequence.length; i++) result = wrapped.call(null, result, sequence[i]);
+    for (i = 2; i < sequence.length; i++)
+      result = wrapped.call(null, result, sequence[i]);
     return result;
   };
 

@@ -16,16 +16,16 @@ http.request(options)
     - method is the method such as GET, POST, etc (default "GET")
     - requestType will be the Content-Type header of the request (default
         "application/x-www-form-urlencoded")
-    - responseType is the Content-Type to treat the response as, regardless of
-        what is actually sent (default null)
-    - timeout is a maximum amount of time in milliseconds to allow for the
+    - responseType is the Content-Type to treat the response as,
+        regardless of what is actually sent (default null)
+    - timeout is a maximum amount of time in milliseconds to allow for an async
         request (default 0, which means no timeout)
-    - data is an object whose properties are serialized and sent to the server
-        in the format appropriate for the method (default null)
+    - data is an object whose properties are serialized and sent to the
+        server in the format appropriate for the method (default null)
     - parseData is a flag for whether or not to automatically serialize
         options.data (default true)
-    - async is whether or not to handle the response asynchronously (default
-        true)
+    - async is whether or not to handle the response asynchronously
+        (default true)
     - headers is an object whose properties are sent in the request as HTTP
         headers (default null)
     - success is a function to be used if the response succeeds in under the
@@ -63,12 +63,12 @@ Response objects:
   };
 
   tjp.http.request = function(o) {
-    var name, xhr;
+    var name, xhr, tout = null;
 
     xhr = makeXHR();
 
     o = tjp.base.extend(tjp.base.extend({}, defaultRequestOptions), o);
-    o.method = o.method.toUpperCase();
+    o.method = o.method.toString().toUpperCase();
 
     if (o.parseData && !(o.data instanceof String))
       o.data = tjp.base.urlencode(o.data);
@@ -81,13 +81,22 @@ Response objects:
     if (o.headers !== null)
       for (name in headers) xhr.setRequestHeader(name, headers[name]);
 
+    xhr.setRequestHeader("Content-Type", o.requestType);
+
+    if (o.responseType !== null) xhr.overrideMimeType(o.responseType);
+
     if (o.url === null) return xhr;
 
     xhr.open(o.method, o.url, o.async);
 
     if (o.async) {
+      if (o.timeout) tout = setTimeout(function() {
+        xhr.abort();
+        tout = null;
+      }, o.timeout);
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
+          if (tout !== null) clearTimeout(tout);
           var response = {
               status: xhr.status,
               statusText: xhr.statusText,

@@ -21,7 +21,7 @@ base.trim(str)
 
 ----------------
 The functions below are based on Dean Edwards's addEvent implementation
-(I modified them to work with non-HTMLElement targets and custom event types)
+(modified to work with non-HTMLElement targets and custom event types)
 ----------------
 
 base.addEvent(targetObj, evName, handlerFunc)
