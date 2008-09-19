@@ -46,4 +46,38 @@ functional.foldleft(wrapped, sequence)
   tjp.functional.foldleft = function(wrapped, sequence) {
     return tjp.functional.foldleft(wrapped, sequence.slice().reverse());
   };
-})(com.travisjparker);
+
+  tjp.functional.compose = function() {
+    var outerargs = arguments;
+    return function(item) {
+      var i;
+      for (i = 0; i < outerargs.length; i++) item = outerargs[i](item);
+      return item;
+    };
+  };
+
+  tjp.functional.generate = function(item) {
+    return function() { return item; };
+  };
+
+  tjp.functional.propgetter = function(name, obj) {
+    return obj[name];
+  };
+
+  tjp.functional.propsetter = function(name, obj, value) {
+    obj[name] = value;
+  };
+
+  tjp.functional.methodrunner = function(name, obj) {
+    var args = [], i;
+    for (i = 2; i < arguments.length; i++) args.push(arguments[i]);
+    return obj[name].apply(obj, args);
+  };
+
+  tjp.functional.paramtransform = function(func, transform) {
+    return function() {
+      var args = transform.apply(null, arguments);
+      return func.apply(null, args);
+    };
+  };
+)(com.travisjparker);
