@@ -18,6 +18,7 @@ functional.foldleft(wrapped, sequence)
 */
 
 /*global com*/
+
 (function(tjp) {
   tjp.functional = {};
   tjp.functional.partial = function(wrapped) {

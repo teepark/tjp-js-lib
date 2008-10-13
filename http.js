@@ -46,6 +46,7 @@ Response objects:
 */
 
 /*global com, ActiveXObject*/
+
 (function(tjp) {
   tjp.http = {};
 

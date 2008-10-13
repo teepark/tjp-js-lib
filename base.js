@@ -33,6 +33,7 @@ base.removeEvent(targetObj, evName, handlerFunc)
 base.dispatchEvent(targetObj, evName)
   trigger an event yourself
 */
+
 var com;
 com = com || {};
 com.travisjparker = {};
