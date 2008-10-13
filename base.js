@@ -72,9 +72,10 @@ com.travisjparker = {};
   };
 
   tjp.base.trim = function (str) {
-    var str = str.replace(/^\s\s*/, ''),
+    var
       ws = /\s/,
       i = str.length;
+    str = str.replace(/^\s\s*/, '');
     while (ws.test(str.charAt(--i)));
     return str.slice(0, i + 1);
   };
@@ -84,10 +85,13 @@ com.travisjparker = {};
     e.stopPropagation = fixEvent.stopPropagation;
     return e;
   };
-  fixEvent.preventDefault = function() { this.returnValue = false; }
-  fixEvent.stopPropagation = function() { this.cancelBubble = true; }
+  fixEvent.preventDefault = function() { this.returnValue = false; };
+  fixEvent.stopPropagation = function() { this.cancelBubble = true; };
 
-  var handleEvent = function(e, t) {
+  var
+    guid = 1,
+    events = {},
+    handleEvent = function(e, t) {
     var i, rv = true;
     try {
       e = e || fixEvent(((this.ownerDocument || this.document || this).
@@ -102,8 +106,6 @@ com.travisjparker = {};
     return rv;
   };
 
-  var guid = 1,
-      events = {};
   tjp.base.addEvent = function(e, t, h) {
     if (e.addEventListener) e.addEventListener(t, h, false);
     else {
@@ -124,7 +126,7 @@ com.travisjparker = {};
 
   tjp.base.removeEvent = function(e, t, h) {
     if (e.removeEventListener) e.removeEventListener(t, h, false);
-    else if (events[e] && events[e][t]) delete events[e][type][h.guid];
+    else if (events[e] && events[e][t]) delete events[e][t][h.guid];
   };
 
   tjp.base.dispatchEvent = function(e, t) {

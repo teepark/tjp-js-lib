@@ -24,8 +24,20 @@ cookie.set(name, value, options)
 cookie.remove(name)
   removes the cookie with name (stores with max-age of 0)
 */
+
+/*jslint eqeqeq: false */
+/*global com*/
+
 (function(tjp) {
   tjp.cookie = {};
+
+  var defaultOptions = {
+    path: "/",
+    domain: "." + document.location.hostname.split(".").slice(-2).join("."),
+    expires: -1,
+    secure: false
+  };
+  defaultOptions["max-age"] = null;
 
   tjp.cookie.get = function(name) {
     var i, pairs, pair, result = {};
@@ -46,13 +58,14 @@ cookie.remove(name)
     expdate = Date.parse(options.expires);
     if (!(options['max-age'] instanceof Number) && !isNaN(expdate)) {
       options['max-age'] = Math.round((expdate -
-          (new Date()).getTime()) / 1000);
+          new Date().getTime()) / 1000);
     }
     delete options.expires;
 
     cookiestr = name + "=" + value;
     for (opt in options) {
-      if (options[opt] != null && opt !== "secure")
+      if (options[opt] !== undefined && options[opt] !== null &&
+          opt !== "secure")
         cookiestr += "; " + opt + "=" + options[opt];
     }
     if (options.secure) cookiestr += "; secure";
@@ -73,12 +86,4 @@ cookie.remove(name)
     }
     return result;
   };
-
-  var defaultOptions = {
-    path: "/",
-    domain: "." + document.location.hostname.split(".").slice(-2).join("."),
-    expires: -1,
-    secure: false
-  };
-  defaultOptions["max-age"] = null;
 })(com.travisjparker);

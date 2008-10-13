@@ -44,8 +44,54 @@ Response objects:
       responseType, this is an XML document of the response
     headers: an object whose name/value pairs are the headers of the response
 */
+
+/*global com, ActiveXObject*/
 (function(tjp) {
   tjp.http = {};
+
+  var defaultRequestOptions = {
+    url: null,
+    method: "GET",
+    requestType: "application/x-www-form-urlencoded",
+    responseType: null,
+    timeout: 0,
+    data: null,
+    parseData: true,
+    async: true,
+    headers: null,
+    success: null,
+    failure: null
+  };
+
+  var ms_xml_types = [
+    "Msxml6.XMLHTTP",
+    "Msxml5.XMLHTTP",
+    "Msxml4.XMLHTTP",
+    "Msxml3.XMLHTTP",
+    "Msxml2.XMLHTTP",
+    "Microsoft.XMLHTTP"
+  ];
+  function makeXHR() {
+    var i;
+    if (window.ActiveXObject) {
+      for (i = 0; i < ms_xml_types.length; i++) {
+        try { return new ActiveXObject(ms_xml_types[i]); }
+        catch (e) {}
+      }
+    }
+    return window.XMLHttpRequest ? new XMLHttpRequest() : null;
+  };
+
+  function parseHeaders(raw) {
+    var i, lines, pair, result = {};
+    lines = raw.split("\n");
+    for (i = 0; i < lines.length; i++) {
+      pair = lines[0].split(":");
+      if (pair[1].slice(0, 1) === " ") pair[1] = pair[1].slice(1);
+      result[pair[0].toLowerCase()] = pair[1];
+    }
+    return result;
+  };
 
   tjp.http.get = function(o) {
     return tjp.http.request(tjp.base.extend(tjp.base.extend({}, o),
@@ -79,7 +125,7 @@ Response objects:
     }
 
     if (o.headers !== null)
-      for (name in headers) xhr.setRequestHeader(name, headers[name]);
+      for (name in o.headers) xhr.setRequestHeader(name, o.headers[name]);
 
     xhr.setRequestHeader("Content-Type", o.requestType);
 
@@ -126,49 +172,5 @@ Response objects:
       if (handler instanceof Function) handler(response);
       return xhr;
     }
-  };
-
-  var defaultRequestOptions = {
-    url: null,
-    method: "GET",
-    requestType: "application/x-www-form-urlencoded",
-    responseType: null,
-    timeout: 0,
-    data: null,
-    parseData: true,
-    async: true,
-    headers: null,
-    success: null,
-    failure: null
-  };
-
-  var ms_xml_types = [
-    "Msxml6.XMLHTTP",
-    "Msxml5.XMLHTTP",
-    "Msxml4.XMLHTTP",
-    "Msxml3.XMLHTTP",
-    "Msxml2.XMLHTTP",
-    "Microsoft.XMLHTTP"
-  ];
-  function makeXHR() {
-    var i;
-    if (window.ActiveXObject) {
-      for (i = 0; i < ms_xml_types.length; i++) {
-        try { return new ActiveXObject(ms_xml_types[i]); }
-        catch (e) {}
-      }
-    }
-    return window.XMLHttpRequest ? new XMLHttpRequest() : null;
-  };
-
-  function parseHeaders(raw) {
-    var i, lines, pair, result = {};
-    lines = raw.split("\n");
-    for (i = 0; i < lines.length; i++) {
-      pair = lines[0].split(":");
-      if (pair[1].slice(0, 1) === " ") pair[1] = pair[1].slice(1);
-      result[pair[0].toLowerCase()] = pair[1];
-    }
-    return result;
   };
 })(com.travisjparker);

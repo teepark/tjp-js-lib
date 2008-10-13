@@ -16,6 +16,8 @@ functional.foldright(wrapped, sequence)
 functional.foldleft(wrapped, sequence)
   foldright on the reversed sequence
 */
+
+/*global com*/
 (function(tjp) {
   tjp.functional = {};
   tjp.functional.partial = function(wrapped) {
@@ -80,4 +82,4 @@ functional.foldleft(wrapped, sequence)
       return func.apply(null, args);
     };
   };
-)(com.travisjparker);
+})(com.travisjparker);
