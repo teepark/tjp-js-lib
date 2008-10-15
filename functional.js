@@ -174,10 +174,10 @@ function paramtransform(func, transformer)
   };
 
   tjp.functional.compose = function() {
-    var outerargs = arguments;
+    var args = arguments;
     return function(item) {
       var i;
-      for (i = 0; i < outerargs.length; i++) item = outerargs[i](item);
+      for (i = 0; i < args.length; i++) item = args[i](item);
       return item;
     };
   };

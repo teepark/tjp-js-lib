@@ -93,19 +93,19 @@ com.travisjparker = {};
     guid = 1,
     events = {},
     handleEvent = function(e, t) {
-    var i, rv = true;
-    try {
-      e = e || fixEvent(((this.ownerDocument || this.document || this).
-          parentWindow || window).event || {type: t});
-    } catch (err) { e = fixEvent({type: t}); }
-    var hs = events[e][e.type];
-    for (i in hs) {
-      this.handleEvent = hs[i];
-      if (this.handleEvent(e) === false) rv = false;
-    }
-    delete this.handleEvent;
-    return rv;
-  };
+      var i, rv = true, hs;
+      try {
+        e = e || fixEvent(((this.ownerDocument || this.document || this).
+            parentWindow || window).event || {type: t});
+      } catch (err) { e = fixEvent({type: t}); }
+      hs = events[e][e.type];
+      for (i in hs) {
+        this.handleEvent = hs[i];
+        if (this.handleEvent(e) === false) rv = false;
+      }
+      delete this.handleEvent;
+      return rv;
+    };
 
   tjp.base.addEvent = function(e, t, h) {
     if (e.addEventListener) e.addEventListener(t, h, false);
