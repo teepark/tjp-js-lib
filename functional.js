@@ -74,7 +74,7 @@ function paramtransform(func, transformer)
   };
 
   tjp.functional.map = function(func, arr) {
-    if (Array.prototype.map) return arr.map(func)
+    if (Array.prototype.map) return arr.map(func);
 
     var results, i, len;
     isfunc(func);
@@ -127,9 +127,9 @@ function paramtransform(func, transformer)
   tjp.functional.partial = function(func) {
     var args = arguments;
     return function() {
-      var i;
-      for (i = 1; i < arguments.length; i++) args.push(arguments[i]);
-      return func.apply(null, args);
+      for (var i = 0; i < arguments.length; i++)
+        Array.prototype.push.call(args, arguments[i]);
+      return func.apply(null, Array.prototype.slice.call(args, 1));
     };
   };
 
@@ -137,7 +137,8 @@ function paramtransform(func, transformer)
     var outer = arguments;
     return function() {
       var i, args = arguments;
-      for (i = outer.length - 1; i > 0; i--) args.push(outer[i]);
+      for (i = outer.length - 1; i > 0; i--)
+        Array.prototype.push.call(args, outer[i]);
       return func.apply(null, args);
     };
   };
