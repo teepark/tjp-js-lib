@@ -37,12 +37,12 @@ http.request(options)
 Response objects:
   callback functions receive a single argument, the response. This is a
   javascript object with the following properties:
-    status: the status code (e.g. 200 for OK)
-    statusText: the string-representation of the status (e.g. "OK")
-    text: the text of the response
-    xml: if indicated by the Content-Type of the response or an overridden
-      responseType, this is an XML document of the response
-    headers: an object whose name/value pairs are the headers of the response
+    - status: the status code (e.g. 200 for OK)
+    - statusText: the string-representation of the status (e.g. "OK")
+    - text: the text of the response
+    - xml: if indicated by the Content-Type of the response or an overridden
+        responseType, this is an XML document of the response
+    - headers: an object whose name/value pairs are the headers of the response
 */
 
 /*global com, ActiveXObject*/
@@ -125,16 +125,16 @@ Response objects:
       o.data = null;
     }
 
-    if (o.headers !== null)
-      for (name in o.headers) xhr.setRequestHeader(name, o.headers[name]);
-
-    xhr.setRequestHeader("Content-Type", o.requestType);
-
     if (o.responseType !== null) xhr.overrideMimeType(o.responseType);
 
     if (o.url === null) return xhr;
 
     xhr.open(o.method, o.url, o.async);
+
+    if (o.headers !== null)
+      for (name in o.headers) xhr.setRequestHeader(name, o.headers[name]);
+
+    xhr.setRequestHeader("Content-Type", o.requestType);
 
     if (o.async) {
       if (o.timeout) tout = setTimeout(function() {

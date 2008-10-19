@@ -8,6 +8,7 @@ cookie.getall()
   returns an object whose key/value pairs are all the cookies available
 
 cookie.set(name, value, options)
+cookie.set(mapping, options)
   stores value under name in the browser cookies
   options is an optional object whose key/value pairs customize the storage:
     - path: the url-path under which the cookie is accessible (default "/")
@@ -20,9 +21,14 @@ cookie.set(name, value, options)
         be a GMTString (default null)
     - secure: if true, cookie is only available to web-pages under https 
         (default false)
+  the second form sets all the name, value pairs in the mapping with an options
+  argument in the same form as before
 
 cookie.remove(name)
   removes the cookie with name (stores with max-age of 0)
+
+cookie.removeall()
+  clears all the cookies that are currently available
 */
 
 /*jslint eqeqeq: false */
@@ -41,7 +47,7 @@ cookie.remove(name)
 
   tjp.cookie.get = function(name) {
     var i, pairs, pair, result = {};
-    pairs = document.cookie.split(";");
+    pairs = document.cookie.split("; ");
     for (i = 0; i < pairs.length; i++) {
       pair = pairs[i].split("=");
       if (pair[0] === name) return pair[1];
@@ -50,17 +56,25 @@ cookie.remove(name)
   };
 
   tjp.cookie.set = function(name, value, options) {
-    var opt, expdate, cookiestr;
+    var opt, expdate, cookiestr, ck;
+
+    if ((typeof name) === "object") {
+      // name is the mapping, value is now the options
+      for (ck in name) tjp.cookie.set(ck, name[ck], value);
+      return;
+    }
 
     options = tjp.base.extend(tjp.base.extend({}, defaultOptions),
         options || {});
 
     expdate = Date.parse(options.expires);
-    if (!(options['max-age'] instanceof Number) && !isNaN(expdate)) {
+    if (!((typeof options['max-age']) === "number") && !isNaN(expdate)) {
       options['max-age'] = Math.round((expdate -
           new Date().getTime()) / 1000);
     }
     delete options.expires;
+
+    if (options.domain === ".localhost") delete options.domain;
 
     cookiestr = name + "=" + value;
     for (opt in options) {
@@ -77,9 +91,14 @@ cookie.remove(name)
     tjp.cookie.set(name, "", {"max-age": 0});
   };
 
+  tjp.cookie.removeall = function() {
+    var name, ck = tjp.cookie.getall();
+    for (name in ck) tjp.cookie.remove(name);
+  };
+
   tjp.cookie.getall = function() {
     var i, pairs, pair, result = {};
-    pairs = document.cookie.split(";");
+    pairs = document.cookie.split("; ");
     for (i = 0; i < pairs.length; i++) {
       pair = pairs[i].split("=");
       result[pair[0]] = pair[1];
