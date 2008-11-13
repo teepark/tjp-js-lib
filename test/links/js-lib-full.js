@@ -1,0 +1,1 @@
+../../build/js-lib-full.js
