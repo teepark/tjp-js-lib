@@ -2,7 +2,7 @@
 
 # find the needed directories
 HERE=`dirname $0`
-[ -h $HERE ] && HERE=`readlink $0`
+[ -h $HERE ] && HERE=`dirname $(readlink $0)`
 SRC=$HERE/src
 BUILD=$HERE/build
 WRAP=$HERE/wrap
@@ -10,10 +10,20 @@ WRAP=$HERE/wrap
 # make a build directory if we don't already have one
 [ -d $BUILD ] || mkdir $BUILD
 
-cat $WRAP/pre.js $SRC/base.js $SRC/cookie.js $SRC/functional.js $SRC/http.js $WRAP/post.js > $BUILD/js-lib-full.js
-jscompress $WRAP/pre.js $SRC/base.js $SRC/cookie.js $SRC/functional.js $SRC/http.js $WRAP/post.js > $BUILD/js-lib-full-compress.js
-jsmin $WRAP/pre.js $SRC/base.js $SRC/cookie.js $SRC/functional.js $SRC/http.js $WRAP/post.js > $BUILD/js-lib-full-min.js
-jspack $WRAP/pre.js $SRC/base.js $SRC/cookie.js $SRC/functional.js $SRC/http.js $WRAP/post.js > $BUILD/js-lib-full-pack.js
+FILES=`ls $SRC | grep -v base\.js`
+echo $FILES
+
+ALL="$WRAP/pre.js $SRC/base.js"
+for file in $FILES
+do
+	ALL+=" $SRC/$FILE"
+done
+ALL+=" $WRAP/post.js"
+
+cat $ALL > $BUILD/js-lib-full.js
+jscompress $ALL > $BUILD/js-lib-full-compress.js
+jsmin $ALL > $BUILD/js-lib-full-min.js
+jspack $ALL > $BUILD/js-lib-full-pack.js
 
 if [ -n "$1" ]
 then
