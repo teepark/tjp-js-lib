@@ -42,10 +42,10 @@ tjp.base.extend = function(extended, extender) {
   return extended;
 };
 
-tjp.base.urlencode = function(data) {
+tjp.base.urlencode = function(dataObj) {
   var i, name, values, results = [];
-  for (name in data) {
-    values = data[name] instanceof Array ? data[name] : [data[name]];
+  for (name in dataObj) {
+    values = dataObj[name] instanceof Array ? dataObj[name] : [dataObj[name]];
     for (i = 0; i < values.length; i++)
       results.push([
         encodeURIComponent(name),
@@ -59,9 +59,10 @@ tjp.base.urldecode = function(dataStr) {
   var i, name, value, pair, pairs, results = {};
   pairs = dataStr.split("&");
   for (i = 0; i < pairs.length; i++) {
-    pair = pairs.split("=");
+    pair = pairs[i].split("=");
     name = decodeURIComponent(pair[0]);
     value = decodeURIComponent(pair[1]);
+
     if (!(name in results)) results[name] = [];
     results[name].push(value);
   }
