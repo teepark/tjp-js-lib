@@ -1,22 +1,17 @@
 #!/usr/bin/env sh
 
-# find the needed directories
 HERE=`dirname $0`
 [ -h $HERE ] && HERE=`dirname $(readlink $0)`
 SRC=$HERE/src
 BUILD=$HERE/build
 WRAP=$HERE/wrap
 
-# make a build directory if we don't already have one
 [ -d $BUILD ] || mkdir $BUILD
 
-FILES=`ls $SRC | grep -v base\.js`
-echo $FILES
-
 ALL="$WRAP/pre.js $SRC/base.js"
-for file in $FILES
+for file in `ls $SRC | grep -v base\.js`
 do
-	ALL+=" $SRC/$FILE"
+	ALL+=" $SRC/$file"
 done
 ALL+=" $WRAP/post.js"
 
@@ -30,9 +25,9 @@ then
 	OUTFILE=$1
 	shift
 	ARGS="$WRAP/pre.js $SRC/base.js"
-	for name in $@
+	for file in $@
 	do
-		ARGS+=" $SRC/$name.js"
+		ARGS+=" $SRC/$file.js"
 	done
 	ARGS+=" $WRAP/post.js"
 
