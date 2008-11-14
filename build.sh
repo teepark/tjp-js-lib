@@ -8,31 +8,36 @@ WRAP=$HERE/wrap
 
 [ -d $BUILD ] || mkdir $BUILD
 
-ALL="$WRAP/pre.js $SRC/base.js"
-for file in `ls $SRC | grep -v base\.js`
-do
-	ALL+=" $SRC/$file"
-done
-ALL+=" $WRAP/post.js"
-
-cat $ALL > $BUILD/js-lib-full.js
-jscompress $ALL > $BUILD/js-lib-full-compress.js
-jsmin $ALL > $BUILD/js-lib-full-min.js
-jspack $ALL > $BUILD/js-lib-full-pack.js
-
-if [ -n "$1" ]
-then
-	OUTFILE=$1
+publish () {
+	out=`basename $1 .js`
 	shift
-	ARGS="$WRAP/pre.js $SRC/base.js"
-	for file in $@
-	do
-		ARGS+=" $SRC/$file.js"
-	done
-	ARGS+=" $WRAP/post.js"
 
-	cat $ARGS > $BUILD/$OUTFILE.js
-	jsmin $ARGS > $BUILD/$OUTFILE-min.js
-	jscompress $ARGS > $BUILD/$OUTFILE-compress.js
-	jspack $ARGS > $BUILD/$OUTFILE-pack.js
-fi
+	echo "publishing '$@' to $out.js"
+	cat $@ > $BUILD/$out.js
+	jscompress $@ > $BUILD/$out-compress.js
+	jsmin $@ > $BUILD/$out-min.js
+	jspack $@ > $BUILD/$out-pack.js
+}
+
+# full library
+publish js-lib-full \
+	$WRAP/initiate.js \
+	$WRAP/startscope.js \
+	$SRC/base.js \
+	`find $SRC -name '*.js' | grep -v base\.js` \
+	$WRAP/endscope.js
+
+# standalone base
+publish base-standalone \
+	$WRAP/initiate.js \
+	$WRAP/startscope.js \
+	$SRC/base.js \
+	$WRAP/endscope.js
+
+# rest of the standalones
+for file in `find $SRC -name '*.js' | grep -v base\.js`; do
+	publish `basename $file .js`-standalone \
+		$WRAP/startscope.js \
+		$file \
+		$WRAP/endscope.js
+done
