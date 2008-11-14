@@ -1,20 +1,9 @@
 <!doctype html>
-<script type="text/javascript" src="links/js-lib-full.js"></script>
+<div id="load_time"></div>
 <a href="tests-plain.html">plain</a><br>
 <a href="tests-min.html">minified</a><br>
 <a href="tests-compress.html">compressed</a><br>
 <a href="tests-pack.html">pack</a>
-<script type="text/javascript">
-(function() {
-  var i, tag, br, tags = document.getElementsByTagName("a");
-  for (i = 0; i < tags.length; i++) {
-    tag = tags[i];
-    if (tag.href.split("/").slice(-1)[0] === 
-        document.location.href.split("/").slice(-1)[0]) {
-      if (tag.nextSibling.tagName.toLowerCase() === "br")
-        tag.parentNode.removeChild(tag.nextSibling);
-      tag.parentNode.removeChild(tag);
-    }
-  }
-})();
-</script>
+<script type="text/javascript" src="testing-start.js"></script>
+<script type="text/javascript" src="links/js-lib-full.js"></script>
+<script type="text/javascript" src="testing-end.js"></script>
