@@ -21,6 +21,17 @@ base.trim(str)
 */
 /*global tjp*/
 
+function coerce(str) {
+  // a safer eval
+  var as_num;
+
+  if (str === "undefined") return undefined;
+  if (str === "null") return null;
+  as_num = Number(str);
+  if (String(as_num) === str) return as_num;
+  return str;
+};
+
 tjp.base = {};
 
 tjp.base.extend = function(extended, extender) {
@@ -50,7 +61,7 @@ tjp.base.urldecode = function(dataStr) {
     value = decodeURIComponent(pair[1]);
 
     if (!(name in results)) results[name] = [];
-    results[name].push(value);
+    results[name].push(coerce(value));
   }
   return results;
 };
