@@ -75,3 +75,15 @@ tjp.base.trim = function (str) {
   while (ws.test(str.charAt(--i)));
   return str.slice(0, i + 1);
 };
+
+tjp.base.rtrim = function(str) {
+  return str.replace(/^\s\s*/, '');
+};
+
+tjp.base.ltrim = function(str) {
+  var
+    ws = /\s/,
+    i = str.length;
+  while (ws.test(str.charAt(--i)));
+  return str.slice(0, i + 1);
+};
