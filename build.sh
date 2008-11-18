@@ -19,6 +19,18 @@ publish () {
 	jspack $@ > $BUILD/$out-pack.js
 }
 
+# custom combination
+if [ $2 ]; then
+	out=$1
+	shift
+	args="$WRAP/initiate.js $WRAP/startscope.js $SRC/base.js"
+	for file in $@; do
+		args+=" $SRC/`basename $file .js`.js"
+	done
+	args+=" $WRAP/endscope.js"
+	publish $out $args
+fi
+
 # full library
 publish js-lib-full \
 	$WRAP/initiate.js \
@@ -41,13 +53,3 @@ for file in `find $SRC -name '*.js' | grep -v base\.js`; do
 		$file \
 		$WRAP/endscope.js
 done
-
-# custom combination
-out=$1
-shift
-args="$WRAP/initiate.js $WRAP/startscope.js $SRC/base.js"
-for file in $@; do
-	args+=" $SRC/`basename $file .js`.js"
-done
-args+=" $WRAP/endscope.js"
-publish $out $args
