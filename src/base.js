@@ -68,9 +68,10 @@ tjp.base.urldecode = function(dataStr) {
 
 tjp.base.trim = function (str) {
   var
+    i,
     ws = /\s/,
-    i = str.length;
   str = str.replace(/^\s\s*/, '');
+  i = str.length;
   while (ws.test(str.charAt(--i)));
   return str.slice(0, i + 1);
 };
