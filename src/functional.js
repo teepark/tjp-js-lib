@@ -46,6 +46,9 @@ functional.compose(...functions)
 functional.generate(item)
   returns a function that will always return item
 
+functional.id(item)
+  returns the argument unchanged
+
 functional.propgetter(obj, name)
   returns obj[name] - primarily useful for creating other functions with
   functional.partial and functional.revpartial
@@ -183,6 +186,10 @@ tjp.functional.compose = function() {
 
 tjp.functional.generate = function(item) {
   return function() { return item; };
+};
+
+tjp.functional.id = function(item) {
+  return item;
 };
 
 tjp.functional.propgetter = function(obj, name) {
