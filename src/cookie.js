@@ -31,7 +31,6 @@ cookie.removeall()
   clears all the cookies that are currently available
 */
 
-/*jslint eqeqeq: false */
 /*global tjp*/
 
 tjp.cookie = {};
