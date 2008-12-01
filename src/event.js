@@ -19,10 +19,10 @@ event.dispatchEvent(targetObj, evName)
 
 tjp.event = {};
 
-var fixEvent = function(e) {
-  e.preventDefault = fixEvent.preventDefault;
-  e.stopPropagation = fixEvent.stopPropagation;
-  return e;
+var fixEvent = function(target) {
+  target.preventDefault = fixEvent.preventDefault;
+  target.stopPropagation = fixEvent.stopPropagation;
+  return target;
 };
 fixEvent.preventDefault = function() { this.returnValue = false; };
 fixEvent.stopPropagation = function() { this.cancelBubble = true; };
@@ -30,44 +30,46 @@ fixEvent.stopPropagation = function() { this.cancelBubble = true; };
 var
   guid = 1,
   events = {},
-  handleEvent = function(e, t) {
+  handleEvent = function(target, type) {
     var i, rv = true, hs;
     try {
-      e = e || fixEvent(((this.ownerDocument || this.document || this).
-          parentWindow || window).event || {type: t});
-    } catch (err) { e = fixEvent({type: t}); }
-    hs = events[e][e.type];
+      target = target || fixEvent(((this.ownerDocument || this.document ||
+              this).parentWindow || window).event || {type: type});
+    } catch (err) { target = fixEvent({type: type}); }
+    hs = events[target][target.type];
     for (i in hs) {
       this.handleEvent = hs[i];
-      if (this.handleEvent(e) === false) rv = false;
+      if (this.handleEvent(target) === false) rv = false;
     }
     delete this.handleEvent;
     return rv;
   };
 
-tjp.event.addEvent = function(e, t, h) {
-  if (e.addEventListener) e.addEventListener(t, h, false);
+tjp.event.addEvent = function(target, type, handler) {
+  if (target.addEventListener) target.addEventListener(type, handler, false);
   else {
-    if (!h.guid) h.guid = guid++;
-    if (!events[e]) events[e] = {};
-    var hs = events[e][t];
-    if (!hs) {
-      hs = events[e][t] = {};
-      if (e["on" + t]) hs[0] = e["on" + t];
+    if (!handler.guid) handler.guid = guid++;
+    if (!events[target]) events[target] = {};
+    var handlers = events[target][type];
+    if (!handlers) {
+      handlers = events[target][type] = {};
+      if (target["on" + type]) handlers[0] = target["on" + type];
     }
-    hs[h.guid] = h;
-    e["on" + t] = function(ev) {
+    handlers[handler.guid] = handler;
+    target["on" + type] = function(ev) {
       this.handleEvent = handleEvent;
-      return this.handleEvent(ev, t);
+      return this.handleEvent(ev, type);
     };
   }
 };
 
-tjp.event.removeEvent = function(e, t, h) {
-  if (e.removeEventListener) e.removeEventListener(t, h, false);
-  else if (events[e] && events[e][t]) delete events[e][t][h.guid];
+tjp.event.removeEvent = function(target, type, handler) {
+  if (target.removeEventListener)
+    target.removeEventListener(type, handler, false);
+  else if (events[target] && events[target][type])
+    delete events[target][type][handler.guid];
 };
 
-tjp.event.dispatchEvent = function(e, t) {
-  if (e["on" + t]) e["on" + t]();
+tjp.event.dispatchEvent = function(target, type) {
+  if (target["on" + type]) target["on" + type]();
 };
