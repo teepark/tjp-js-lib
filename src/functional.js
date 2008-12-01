@@ -127,21 +127,22 @@ tjp.functional.any = function(func, arr) {
 };
 
 tjp.functional.partial = function(func) {
-  var args = arguments;
+  var outer = arguments;
   return function() {
-    for (var i = 0; i < arguments.length; i++)
-      Array.prototype.push.call(args, arguments[i]);
-    return func.apply(null, Array.prototype.slice.call(args, 1));
+    var i, args = Array.prototype.slice.call(outer, 1);
+    for (i = 0; i < arguments.length; i++)
+      args.push(arguments[i]);
+    return func.apply(null, args);
   };
 };
 
 tjp.functional.revpartial = function(func) {
   var outer = arguments;
   return function() {
-    var i, args = arguments;
+    var i;
     for (i = outer.length - 1; i > 0; i--)
-      Array.prototype.push.call(args, outer[i]);
-    return func.apply(null, args);
+      Array.prototype.push.call(arguments, outer[i]);
+    return func.apply(null, arguments);
   };
 };
 
