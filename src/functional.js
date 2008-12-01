@@ -130,8 +130,7 @@ tjp.functional.partial = function(func) {
   var outer = arguments;
   return function() {
     var i, args = Array.prototype.slice.call(outer, 1);
-    for (i = 0; i < arguments.length; i++)
-      args.push(arguments[i]);
+    for (i = 0; i < arguments.length; i++) args.push(arguments[i]);
     return func.apply(null, args);
   };
 };
