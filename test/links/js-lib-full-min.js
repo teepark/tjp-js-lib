@@ -1,1 +1,0 @@
-../../build/js-lib-full-min.js
