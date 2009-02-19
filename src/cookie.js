@@ -27,7 +27,7 @@ cookie.set(mapping, options)
 cookie.remove(name)
   removes the cookie with name (stores with max-age of 0)
 
-cookie.removeall()
+cookie.clear()
   clears all the cookies that are currently available
 */
 
@@ -89,7 +89,7 @@ tjp.cookie.remove = function(name) {
   tjp.cookie.set(name, "", {"max-age": 0});
 };
 
-tjp.cookie.removeall = function() {
+tjp.cookie.clear = function() {
   var name, ck = tjp.cookie.getall();
   for (name in ck) tjp.cookie.remove(name);
 };

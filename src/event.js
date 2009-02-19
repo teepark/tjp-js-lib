@@ -6,13 +6,13 @@ This file is based on Dean Edwards's addEvent implementation and
 modified to work with non-HTMLElement targets and custom event types
 ----------------
 
-event.addEvent(targetObj, evName, handlerFunc)
+event.add(targetObj, evName, handlerFunc)
   add an event listener to targetObj
 
-event.removeEvent(targetObj, evName, handlerFunc)
-  undo an addEvent
+event.remove(targetObj, evName, handlerFunc)
+  undo an add
 
-event.dispatchEvent(targetObj, evName)
+event.dispatch(targetObj, evName)
   trigger an event yourself
 */
 /*global tjp*/
@@ -45,7 +45,7 @@ var
     return rv;
   };
 
-tjp.event.addEvent = function(target, type, handler) {
+tjp.event.add = function(target, type, handler) {
   if (target.addEventListener) target.addEventListener(type, handler, false);
   else {
     if (!handler.guid) handler.guid = guid++;
@@ -63,13 +63,13 @@ tjp.event.addEvent = function(target, type, handler) {
   }
 };
 
-tjp.event.removeEvent = function(target, type, handler) {
+tjp.event.remove = function(target, type, handler) {
   if (target.removeEventListener)
     target.removeEventListener(type, handler, false);
   else if (events[target] && events[target][type])
     delete events[target][type][handler.guid];
 };
 
-tjp.event.dispatchEvent = function(target, type) {
+tjp.event.dispatch = function(target, type) {
   if (target["on" + type]) target["on" + type]();
 };

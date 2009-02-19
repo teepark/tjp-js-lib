@@ -31,6 +31,8 @@ function sorter(a, b) {
       if (alen < blen) return -1;
       return 0;
     }
+    if (a.length !== undefined && b.length === undefined) return -1;
+    if (a.length === undefined && b.length !== undefined) return 1;
   case "undefined":
   default:
     return 0;
@@ -72,21 +74,17 @@ SortedArray.prototype.indexOf = function(item) {
 };
 
 // O(log(n)) time indexing
-SortedArray.prototype.findIndex = function (item) {
-  var i, base = 0, arr = this, s;
+SortedArray.prototype.findIndex = function(item) {
+  var bt = 0, tp = this.length, md, s;
   while (1) {
-    if (arr.length == 0) return [base, false];
+    if (tp === bt) return [bt, false];
 
-    i = Math.floor(arr.length / 2);
-    s = sorter(arr[i], item);
+    md = Math.floor((tp + bt) / 2);
+    s = sorter(this[md], item);
 
-    if (s < 0) {
-      arr = arr.slice(i + 1);
-      base += i + 1;
-    } else if (s > 0)
-      arr = arr.slice(0, i);
-    else
-      return [base + i, true];
+    if (s > 0) tp = md;
+    else if (s < 0) bt = md + 1;
+    else return [md, true];
   }
 };
 
