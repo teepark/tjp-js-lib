@@ -9,47 +9,41 @@ WRAP=$HERE/wrap
 [ -d $BUILD ] || mkdir $BUILD
 
 publish () {
-	out=`basename $1 .js`
+	out=$BUILD/`basename $1 .js`.js
 	shift
 
-	echo "publishing $out-*.js"
-	cat $@ > $BUILD/$out.js
-	jscompress $@ > $BUILD/$out-compress.js
-	jsmin $@ > $BUILD/$out-min.js
-	jspack $@ > $BUILD/$out-pack.js
+	echo "publishing $BUILD/`basename $out .js`-*.js"
+
+	cat $WRAP/initiate.js > $out
+	for infile in $@; do
+		cat $WRAP/startscope.js $infile $WRAP/endscope.js >> $out
+	done
+
+	cat $out | jsmin > $BUILD/`basename $out .js`-min.js
+	cat $out | jscompress > $BUILD/`basename $out .js`-compress.js
+	cat $out | jspack > $BUILD/`basename $out .js`-pack.js
 }
 
 # custom combination
 if [ $2 ]; then
 	out=$1
 	shift
-	args="$WRAP/initiate.js $WRAP/startscope.js $SRC/base.js"
-	for file in $@; do
-		args+=" $SRC/`basename $file .js`.js"
+	args=$SRC/base.js
+	for name in $@; do
+		if [ `basename $name .js` != base ]; then
+			args+=" $SRC/`basename $name .js`.js"
+		fi
 	done
-	args+=" $WRAP/endscope.js"
 	publish $out $args
+else
+	# full library
+	publish js-lib-full $SRC/base.js `find $SRC -name '*.js' | grep -v base\.js | sort`
+
+	# standalone base
+	publish base-standalone $SRC/base.js
+
+	# rest of the standalones
+	for file in `find $SRC -name '*.js' | grep -v base\.js | sort`; do
+		publish `basename $file .js`-standalone $file
+	done
 fi
-
-# full library
-publish js-lib-full \
-	$WRAP/initiate.js \
-	$WRAP/startscope.js \
-	$SRC/base.js \
-	`find $SRC -name '*.js' | grep -v base\.js` \
-	$WRAP/endscope.js
-
-# standalone base
-publish base-standalone \
-	$WRAP/initiate.js \
-	$WRAP/startscope.js \
-	$SRC/base.js \
-	$WRAP/endscope.js
-
-# rest of the standalones
-for file in `find $SRC -name '*.js' | grep -v base\.js`; do
-	publish `basename $file .js`-standalone \
-		$WRAP/startscope.js \
-		$file \
-		$WRAP/endscope.js
-done
