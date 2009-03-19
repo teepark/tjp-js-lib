@@ -18,6 +18,15 @@ base.trim(str)
   most efficient javascript whitespace trim known to man
   courtesy of Steve Leviathan
     (http://blog.stevenlevithan.com/archives/faster-trim-javascript)
+
+base.rtrim(str)
+  like trim(), but only trimming the right side
+
+base.ltrim(str)
+  like trim(), but only trimming the left side
+
+base.sorter(obj, obj)
+  the sorting function used throughout the library by default
 */
 /*global tjp*/
 
@@ -86,4 +95,45 @@ tjp.base.ltrim = function(str) {
     i = str.length;
   while (ws.test(str.charAt(--i)));
   return str.slice(0, i + 1);
+};
+
+var typeorder = ["number", "string", "object", "undefined"];
+tjp.base.sorter = function(a, b) {
+  var i, ta, tb, s, alen, blen;
+
+  ta = typeorder.indexOf((typeof a));
+  tb = typeorder.indexOf((typeof b));
+  if (ta !== tb) return ta - tb;
+
+  switch (typeof a) {
+  case "number":
+    return a - b;
+  case "string":
+    alen = a.length;
+    blen = b.length;
+    for (i = 0; i < Math.min(alen, blen); i++) {
+      if (a.charCodeAt(i) > b.charCodeAt(i)) return 1;
+      if (a.charCodeAt(i) < b.charCodeAt(i)) return -1;
+    }
+    if (alen > blen) return 1;
+    if (alen < blen) return -1;
+    return 0;
+  case "object":
+    if (a.length !== undefined && b.length !== undefined) {
+      alen = a.length;
+      blen = b.length;
+      for (i = 0; i < Math.min(alen, blen); i++) {
+        s = tjp.base.sorter(a[i], b[i]);
+        if (s !== 0) return s;
+      }
+      if (alen > blen) return 1;
+      if (alen < blen) return -1;
+      return 0;
+    }
+    if (a.length !== undefined && b.length === undefined) return -1;
+    if (a.length === undefined && b.length !== undefined) return 1;
+  case "undefined":
+  default:
+    return 0;
+  }
 };
