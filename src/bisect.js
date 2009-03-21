@@ -31,6 +31,24 @@ bisect.insort_left(array, item[, low[, high]])
 */
 
 /*global tjp*/
+//context:browser
+//context:console
+
+function findIndex(arr, item, low, high) {
+  var md, s;
+  low = low === undefined ? 0 : low;
+  high = high === undefined ? arr.length : high;
+  while (1) {
+    if (high === low) return [low, false];
+
+    md = Math.floor((high + low) / 2);
+    s = tjp.base.sorter(arr[md], item);
+
+    if (s > 0) high = md;
+    else if (s < 0) low = md + 1;
+    else return [md, true];
+  }
+};
 
 tjp.bisect = {};
 
@@ -59,19 +77,3 @@ tjp.bisect.insort_left = function(arr, item, low, high) {
 };
 
 tjp.bisect.insort = tjp.bisect.insort_right;
-
-function findIndex(arr, item, low, high) {
-  var md, s;
-  low = low === undefined ? 0 : low;
-  high = high === undefined ? arr.length : high;
-  while (1) {
-    if (high === low) return [low, false];
-
-    md = Math.floor((high + low) / 2);
-    s = tjp.base.sorter(arr[md], item);
-
-    if (s > 0) high = md;
-    else if (s < 0) low = md + 1;
-    else return [md, true];
-  }
-};

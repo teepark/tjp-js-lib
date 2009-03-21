@@ -46,6 +46,7 @@ Response objects:
 */
 
 /*global tjp, ActiveXObject*/
+//context:browser
 
 tjp.http = {};
 

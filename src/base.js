@@ -76,9 +76,7 @@ tjp.base.urldecode = function(dataStr) {
 };
 
 tjp.base.trim = function (str) {
-  var
-    i,
-    ws = /\s/,
+  var i, ws = /\s/;
   str = str.replace(/^\s\s*/, '');
   i = str.length;
   while (ws.test(str.charAt(--i)));
@@ -90,9 +88,7 @@ tjp.base.rtrim = function(str) {
 };
 
 tjp.base.ltrim = function(str) {
-  var
-    ws = /\s/,
-    i = str.length;
+  var ws = /\s/, i = str.length;
   while (ws.test(str.charAt(--i)));
   return str.slice(0, i + 1);
 };
@@ -132,6 +128,7 @@ tjp.base.sorter = function(a, b) {
     }
     if (a.length !== undefined && b.length === undefined) return -1;
     if (a.length === undefined && b.length !== undefined) return 1;
+    break; //might as well satisfy jslint
   case "undefined":
   default:
     return 0;

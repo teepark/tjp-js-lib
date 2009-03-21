@@ -27,6 +27,8 @@ operator.instantiate(klass, a, b) <--> new klass(a, b, ...)
 */
 
 /*global tjp*/
+//context:browser
+//context:console
 
 tjp.operator = {};
 
@@ -94,23 +96,23 @@ tjp.operator.isinstance = function(obj, klass) {
   return obj instanceof klass;
 };
 
-tjp.operator.instantiate = function(klass) {
+tjp.operator.instantiate = function(Klass) {
   var args = Array.prototype.slice.call(arguments, 1);
   switch(args.length) {
     case 0:
-      return new klass();
+      return new Klass();
     case 1:
-      return new klass(args[0]);
+      return new Klass(args[0]);
     case 2:
-      return new klass(args[0], args[1]);
+      return new Klass(args[0], args[1]);
     case 3:
-      return new klass(args[0], args[1], args[2]);
+      return new Klass(args[0], args[1], args[2]);
     case 4:
-      return new klass(args[0], args[1], args[2], args[3]);
+      return new Klass(args[0], args[1], args[2], args[3]);
     case 5:
-      return new klass(args[0], args[1], args[2], args[3], args[4]);
+      return new Klass(args[0], args[1], args[2], args[3], args[4]);
     case 6:
-      return new klass(args[0], args[1], args[2], args[3], args[4], args[5]);
+      return new Klass(args[0], args[1], args[2], args[3], args[4], args[5]);
     default:
       throw new Error("too many arguments for operator.instantiate");
   }

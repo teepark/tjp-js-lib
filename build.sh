@@ -37,7 +37,13 @@ if [ $2 ]; then
 	publish $out $args
 else
 	# full library
-	publish js-lib-full $SRC/base.js `find $SRC -name '*.js' | grep -v base\.js | sort`
+	publish full $SRC/base.js `find $SRC -name '*.js' | grep -v base\.js | sort`
+
+	# console-ready
+	publish console $SRC/base.js `grep -E '^\/\/context:console' $SRC/* | cut -d: -f1 | sort`
+
+	# browser-ready
+	publish browser $SRC/base.js `grep -E '^\/\/context:browser' $SRC/* | cut -d: -f1 | sort`
 
 	# standalone base
 	publish base-standalone $SRC/base.js

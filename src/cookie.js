@@ -32,6 +32,7 @@ cookie.clear()
 */
 
 /*global tjp*/
+//context:browser
 
 tjp.cookie = {};
 

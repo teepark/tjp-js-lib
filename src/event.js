@@ -15,7 +15,10 @@ event.remove(targetObj, evName, handlerFunc)
 event.dispatch(targetObj, evName)
   trigger an event yourself
 */
+
 /*global tjp*/
+//context:browser
+//context:console
 
 tjp.event = {};
 

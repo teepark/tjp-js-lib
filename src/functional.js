@@ -68,6 +68,8 @@ function paramtransform(func, transformer)
 */
 
 /*global tjp*/
+//context:browser
+//context:console
 
 tjp.functional = {};
 
