@@ -49,28 +49,23 @@ var
   };
 
 tjp.event.add = function(target, type, handler) {
-  if (target.addEventListener) target.addEventListener(type, handler, false);
-  else {
-    if (!handler.guid) handler.guid = guid++;
-    if (!events[target]) events[target] = {};
-    var handlers = events[target][type];
-    if (!handlers) {
-      handlers = events[target][type] = {};
-      if (target["on" + type]) handlers[0] = target["on" + type];
-    }
-    handlers[handler.guid] = handler;
-    target["on" + type] = function(ev) {
-      this.handleEvent = handleEvent;
-      return this.handleEvent(ev, type);
-    };
+  if (!handler.__guid) handler.__guid = guid++;
+  if (!events[target]) events[target] = {};
+  var handlers = events[target][type];
+  if (!handlers) {
+    handlers = events[target][type] = {};
+    if (target["on" + type]) handlers[0] = target["on" + type];
   }
+  handlers[handler.__guid] = handler;
+  target["on" + type] = function(ev) {
+    this.handleEvent = handleEvent;
+    return this.handleEvent(ev, type);
+  };
 };
 
 tjp.event.remove = function(target, type, handler) {
-  if (target.removeEventListener)
-    target.removeEventListener(type, handler, false);
-  else if (events[target] && events[target][type])
-    delete events[target][type][handler.guid];
+  if (events[target] && events[target][type])
+    delete events[target][type][handler.__guid];
 };
 
 tjp.event.dispatch = function(target, type) {
