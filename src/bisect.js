@@ -34,10 +34,15 @@ bisect.insort_left(array, item[, low[, high]])
 //context:browser
 //context:console
 
-function findIndex(arr, item, low, high) {
-  var md, s;
-  low = low === undefined ? 0 : low;
-  high = high === undefined ? arr.length : high;
+var defaults = {
+  'low': 0,
+  'high': arr.length,
+  'sorter': tjp.base.sorter
+};
+
+function findIndex(arr, item) {
+  var md, s, o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]),
+    high = o.high, low = o.low;
   while (1) {
     if (high === low) return [low, false];
 
@@ -52,15 +57,17 @@ function findIndex(arr, item, low, high) {
 
 tjp.bisect = {};
 
-tjp.bisect.bisect_right = function(arr, item, low, high) {
-  var indexFound = findIndex(arr, item, low, high), i;
+tjp.bisect.bisect_right = function(arr, item) {
+  var i, o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]),
+    indexFound = findIndex(arr, item, o);
   if (!indexFound[1]) return indexFound[0];
   for (i = indexFound[0] + 1; arr[i] === item && i < arr.length; i++);
   return i;
 };
 
-tjp.bisect.bisect_left = function(arr, item, low, high) {
-  var indexFound = findIndex(arr, item, low, high), i;
+tjp.bisect.bisect_left = function(arr, item) {
+  var i, o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]),
+    indexFound = findIndex(arr, item, o);
   if (!indexFound[1]) return indexFound[0];
   for (i = indexFound[0] - 1; arr[i] === item && i >= 0; i--);
   return i;
@@ -68,11 +75,13 @@ tjp.bisect.bisect_left = function(arr, item, low, high) {
 
 tjp.bisect.bisect = tjp.bisect.bisect_right;
 
-tjp.bisect.insort_right = function(arr, item, low, high) {
-  arr.splice(tjp.bisect.bisect_right(arr, item, low, high), 0, item);
+tjp.bisect.insort_right = function(arr, item) {
+  var o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]);
+  arr.splice(tjp.bisect.bisect_right(arr, item, o), 0, item);
 };
 
-tjp.bisect.insort_left = function(arr, item, low, high) {
+tjp.bisect.insort_left = function(arr, item) {
+  var o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]);
   arr.splice(tjp.bisect.bisect_left(arr, item, low, high), 0, item);
 };
 
