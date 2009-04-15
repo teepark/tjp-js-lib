@@ -1,23 +1,3 @@
-
-
-var tjp;
-tjp = tjp || {
-  base: {
-    trim: function(str) {
-      var i, ws = /\s/;
-      str = str.replace(/^\s\s*/, '');
-      i = str.length;
-      while (ws.test(str.charAt(--i)));
-      return str.slice(0, i + 1);
-    },
-    assert: function(boolval, message) {
-      if (!boolval) throw new Error(message);
-    }
-  }
-};
-
-tjp.json = {};
-
 var
   DOUBLE_QUOTE = 1,
   SINGLE_QUOTE = 2,
@@ -39,34 +19,6 @@ var
   INFINITY = 17,
   NEGATIVE_INFINITY = 18,
   IDENTIFIER = 19;
-
-var rev = [null,
-  'DOUBLE_QUOTE',
-  'SINGLE_QUOTE',
-  'OPEN_STRAIGHT',
-  'CLOSE_STRAIGHT',
-  'OPEN_CURLY',
-  'CLOSE_CURLY',
-  'COMMA',
-  'OTHER',
-  'BACKSLASH',
-  'COLON',
-  'STRING',
-  'NUMBER',
-  'TRUE',
-  'FALSE',
-  'NULL',
-  'UNDEFINED',
-  'INFINITY',
-  'NEGATIVE_INFINITY',
-  'IDENTIFIER'
-];
-
-function show(tokens) {
-  for (var i = 0; i < tokens.length; i++) {
-    print(rev[tokens[i][0]] + ": " + tokens[i][1]);
-  }
-};
 
 var CHAR_TOKENS = {
   '"': DOUBLE_QUOTE,
@@ -188,37 +140,145 @@ function reduce_tokens(tokens) {
 };
 
 function parse_tokens(tokens) {
-  var state = {
-    'stack': [],
-    'postcomma': false,
-  };
-
+  var stack = [{
+    type: OPEN_STRAIGHT,
+    obj: [],
+    postcomma: false,
+    juststarted: true
+  }], token;
+  while (tokens.length) {
+    token = tokens.shift();
+    parsers[token[0]](stack, token);
+  }
+  return stack[0].obj[0];
 };
 
-function parse_open_straight(state, token) {
-  state.stack.push([OPEN_STRAIGHT, []]);
+var parsers = {};
+parsers[OPEN_STRAIGHT] = parse_open_straight;
+parsers[CLOSE_STRAIGHT] = parse_close_straight;
+parsers[OPEN_CURLY] = parse_open_curly;
+parsers[CLOSE_CURLY] = parse_close_curly;
+parsers[COMMA] = parse_comma;
+parsers[COLON] = parse_colon;
+parsers[STRING] = parse_string;
+parsers[NUMBER] = parse_number;
+parsers[NEGATIVE_INFINITY] = parsers[NULL] = parse_simple_value;
+parsers[UNDEFINED] = parsers[INFINITY] = parse_simple_value;
+parsers[TRUE] = parsers[FALSE] = parse_simple_value;
+parsers[IDENTIFIER] = parse_identifier;
+
+function apply_value(stack, value) {
+  var stacktop = stack[stack.length - 1];
+  if (stacktop.type === OPEN_CURLY) {
+    if (stacktop.postcolon) {
+      stacktop.obj[stacktop.key] = value;
+      stacktop.postcolon = false;
+    } else throw new Error("Bad syntax");
+  } else if (stacktop.type === OPEN_STRAIGHT) {
+    if (stacktop.postcomma || stacktop.juststarted) {
+      stacktop.obj.push(value);
+      stacktop.postcomma = stacktop.juststarted = false;
+    } else throw new Error("Bad syntax");
+  } else throw new Error("Parser Error");
 };
 
-function parse_open_curly(state, token) {
-  state.stack.push([OPEN_CURLY, {}, '']);
+function parse_open_straight(stack, token) {
+  stack.push({
+    type: OPEN_STRAIGHT,
+    obj: [],
+    postcomma: false,
+    juststarted: true
+  });
 };
 
-function parse_string(token, state) {
-  var stacktop = state.stack[stack.length - 1];
-  switch (stacktop[0]) {
+function parse_close_straight(stack, token) {
+  var stacktop = stack[stack.length - 1], arr;
+  if (stacktop.type !== OPEN_STRAIGHT) throw new Error("mismatched ']'");
+  arr = stack.pop().obj;
+  stacktop = stack[stack.length - 1];
+  switch(stacktop.type) {
     case OPEN_CURLY:
-      if (state.postcomma) {
-        stacktop[1][stacktop[2]] = token[1];
-        state.postcomma = false;
-      } else stacktop[2] = token[1];
+      stacktop.obj[stacktop.key] = arr;
       break;
     case OPEN_STRAIGHT:
-      stacktop[1].push(token[1]);
-      state.postcomma = false;
+      stacktop.obj.push(arr);
       break;
-    case default:
-      throw new Error("bad context for a STRING");
+    default:
+      throw new Error("bad context for an array");
   }
+};
+
+function parse_open_curly(stack, token) {
+  stack.push({
+    type: OPEN_CURLY,
+    obj: {},
+    key: '',
+    postcomma: false,
+    postcolon: false,
+    juststarted: true
+  });
+};
+
+function parse_close_curly(stack, token) {
+  var stacktop = stack[stack.length - 1], arr;
+  if (stacktop.type !== OPEN_CURLY) throw new Error("mismatched ']'");
+  obj = stack.pop().obj;
+  stacktop = stack[stack.length - 1];
+  switch(stacktop.type) {
+    case OPEN_CURLY:
+      stacktop.obj[stacktop.key] = obj;
+      break;
+    case OPEN_STRAIGHT:
+      stacktop.obj.push(obj);
+      break;
+    default:
+      throw new Error("bad context for an array");
+  }
+};
+
+function parse_identifier(stack, token) {
+  var stacktop = stack[stack.length - 1];
+  if (stacktop.type === OPEN_CURLY &&
+      (stacktop.postcomma || stacktop.juststarted)) {
+    stacktop.key = token[1];
+    stacktop.postcomma = stacktop.juststarted = false;
+  } else throw new Error("Bad syntax");
+};
+
+function parse_comma(stack, token) {
+  var stacktop = stack[stack.length - 1];
+  stacktop.postcomma = true;
+};
+
+function parse_colon(stack, token) {
+  var stacktop = stack[stack.length - 1];
+  if (stacktop.type !== OPEN_CURLY) throw new Error("bad context for a COLON");
+  stacktop.postcolon = true;
+};
+
+function parse_string(stack, token) {
+  var stacktop = stack[stack.length - 1];
+  if (stacktop.type === OPEN_CURLY &&
+      (stacktop.postcomma || stacktop.juststarted)) {
+    stacktop.key = token[1];
+    stacktop.postcomma = stacktop.juststarted = false;
+  } else apply_value(stack, token[1]);
+};
+
+function parse_number(stack, token) {
+  apply_value(stack, eval(token[1]));
+};
+
+var simple_values = {};
+simple_values[TRUE] = true;
+simple_values[FALSE] = false;
+simple_values[UNDEFINED] = undefined;
+simple_values[NULL] = null;
+simple_values[INFINITY] = Infinity;
+simple_values[NEGATIVE_INFINITY] = -Infinity;
+
+function parse_simple_value(stack, token) {
+  apply_value(stack, simple_values[token[0]]);
 };
 
 function find_matching(opener, closer, tokens) {
@@ -234,7 +294,9 @@ function find_matching(opener, closer, tokens) {
 };
 
 tjp.json.load = tjp.json.decode = function(data) {
-  
+  var tokens = tokenize(data);
+  reduce_tokens(tokens);
+  return parse_tokens(tokens);
 };
 
 tjp.json.dump = tjp.json.encode = function(data) {
