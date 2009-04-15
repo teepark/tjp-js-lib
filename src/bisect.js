@@ -36,13 +36,13 @@ bisect.insort_left(array, item[, low[, high]])
 
 var defaults = {
   'low': 0,
-  'high': arr.length,
+  'high': -1,
   'sorter': tjp.base.sorter
 };
 
 function findIndex(arr, item) {
   var md, s, o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]),
-    high = o.high, low = o.low;
+    high = o.high >= o.low ? o.high : arr.length, low = o.low;
   while (1) {
     if (high === low) return [low, false];
 

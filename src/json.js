@@ -1,3 +1,21 @@
+/*
+json - a complete serializer and deserializer for JSON
+
+json.load(datastring)
+json.decode(datastring)
+  returns a javascript object deserialized from the JSON string
+
+json.dump(obj)
+json.encode(obj)
+  returns a string of JSON that represents the object
+*/
+
+/*global tjp*/
+//context:browser
+//context:console
+
+tjp.json = tjp.json || {};
+
 var
   DOUBLE_QUOTE = 1,
   SINGLE_QUOTE = 2,
@@ -112,7 +130,7 @@ function reduce_tokens(tokens) {
       } else strtype = token[0];
       instr = !instr;
     } else if (instr) {
-      buffer.push(token[1]);
+      if (token[0] !== BACKSLASH) buffer.push(token[1]);
       j++;
     }
   }
@@ -283,7 +301,6 @@ function parse_simple_value(stack, token) {
 
 function find_matching(opener, closer, tokens) {
   var i, token, count = 1;
-
   for (i = 0; i < tokens.length; i++) {
     token = tokens[i][0];
     if (token === opener) count++;
