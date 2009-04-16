@@ -195,9 +195,7 @@ function reduce_tokens(tokens) {
   for (i = 0; i < tokens.length; i++) {
     token = tokens[i];
     if (token[0] === OTHER) {
-      try {
-        val = tjp.base.trim(token[1]);
-      } catch (e) { print(rev[token[0]] + ": " + (typeof token[1])); throw e; }
+      val = tjp.base.trim(token[1]);
       if (!val) tokens.splice(i, 1);
       else {
         token[1] = val;
