@@ -3,6 +3,7 @@ json - a complete serializer and deserializer for JSON
 
 json.load(datastring)
 json.decode(datastring)
+json.parse(datastring)
   returns a javascript object deserialized from the JSON string
 
 json.dump(obj)
@@ -14,18 +15,17 @@ json.encode(obj)
 //context:browser
 //context:console
 
-tjp.json = tjp.json || {};
-
 var
   DOUBLE_QUOTE = 1,
   SINGLE_QUOTE = 2,
-  OPEN_STRAIGHT = 3,
-  CLOSE_STRAIGHT = 4,
-  OPEN_CURLY = 5,
-  CLOSE_CURLY = 6,
-  COMMA = 7,
   OTHER = 8,
   BACKSLASH = 9,
+  //////////////
+  OPEN_BRACKET = 3,
+  CLOSE_BRACKET = 4,
+  OPEN_BRACE = 5,
+  CLOSE_BRACE = 6,
+  COMMA = 7,
   COLON = 10,
   //////////////
   STRING = 11,
@@ -38,13 +38,61 @@ var
   NEGATIVE_INFINITY = 18,
   IDENTIFIER = 19;
 
+/* comment this out for production
+var ltrim_regex = RegExp('^\\s\\s*'),
+    space_regex = RegExp('\\s');
+var tjp = tjp || {
+  base: {
+    trim: function(str) {
+      var i;
+      str = str.replace(ltrim_regex, '');
+      i = str.length;
+      while (space_regex.test(str.charAt(--i)));
+      return str.slice(0, i + 1);
+    }
+  }
+};
+
+var rev = {};
+rev[DOUBLE_QUOTE] = 'DOUBLE_QUOTE';
+rev[SINGLE_QUOTE] = 'SINGLE_QUOTE';
+rev[OPEN_BRACKET] = 'OPEN_BRACKET';
+rev[CLOSE_BRACKET] = 'CLOSE_BRACKET';
+rev[OPEN_BRACE] = 'OPEN_BRACE';
+rev[CLOSE_BRACE] = 'CLOSE_BRACE';
+rev[COMMA] = 'COMMA';
+rev[OTHER] = 'OTHER';
+rev[BACKSLASH] = 'BACKSLASH';
+rev[COLON] = 'COLON';
+rev[STRING] = 'STRING';
+rev[NUMBER] = 'NUMBER';
+rev[TRUE] = 'TRUE';
+rev[FALSE] = 'FALSE';
+rev[NULL] = 'NULL';
+rev[UNDEFINED] = 'UNDEFINED';
+rev[INFINITY] = 'INFINITY';
+rev[NEGATIVE_INFINITY] = 'NEGATIVE_INFINITY';
+rev[IDENTIFIER] = 'IDENTIFIER';
+
+function show(tokens) {
+  var i, j, token, spaces;
+  for (i = 0; i < tokens.length; i++) {
+    token = tokens[i];
+    for (spaces = [], j = rev[token[0]].length; j <= 17; j++) spaces.push(' ');
+    print(rev[token[0]] + spaces.join('') + token[1]);
+  }
+};
+//*/
+
+tjp.json = tjp.json || {};
+
 var CHAR_TOKENS = {
   '"': DOUBLE_QUOTE,
   "'": SINGLE_QUOTE,
-  '[': OPEN_STRAIGHT,
-  ']': CLOSE_STRAIGHT,
-  '{': OPEN_CURLY,
-  '}': CLOSE_CURLY,
+  '[': OPEN_BRACKET,
+  ']': CLOSE_BRACKET,
+  '{': OPEN_BRACE,
+  '}': CLOSE_BRACE,
   ',': COMMA,
   '\\': BACKSLASH,
   ':': COLON
@@ -77,8 +125,10 @@ function tokenize(data) {
   return tokens;
 };
 
+var number_regex = /^-?((\d+(\.(\d+)?)?)|(\.\d+))([eE]-?\d+)?$/;
+
 function reduce_tokens(tokens) {
-  var i, j, token, next, replacement, buffer, instr, val;
+  var i, token, next, replacement, buffer, instr, val, strtype;
 
   // scan for BACKSLASHes and replace as necessary
   for (i = 0; i < tokens.length; i++) {
@@ -97,7 +147,7 @@ function reduce_tokens(tokens) {
           break;
         case SINGLE_QUOTE:
         case DOUBLE_QUOTE:
-          // the only case in which we keep the BACKSLASH token
+          // this is the only case in which we keep the BACKSLASH token
           break;
         default:
           throw new Error("Bad context for a \\");
@@ -109,29 +159,35 @@ function reduce_tokens(tokens) {
   for (i = 0; i < tokens.length; i++) {
     if (tokens[i][0] === OTHER && tokens[i + 1] &&
         tokens[i + 1][0] === OTHER)
-      tokens.splice(i, 2, [OTHER, tokens[i][0] + tokens[i + 1][0]]);
+      tokens.splice(i, 2, [OTHER, tokens[i][1] + tokens[i + 1][1]]);
   }
 
   // find STRINGs
-  for (i = j = 0, buffer = [], instr = false; i < tokens.length; i++) {
+  for (i = 0, buffer = [], instr = false; i < tokens.length; i++) {
     token = tokens[i];
     if (token[0] === SINGLE_QUOTE || token[0] === DOUBLE_QUOTE) {
       if (instr) {
         if (tokens[i - 1] && tokens[i - 1][0] === BACKSLASH) {
           buffer.push(token[1]);
-          j++;
+          tokens.splice(--i, 2);
           continue;
-        } else if (token[0] !== strtype) tokens.splice(i, 1);
-        else {
-          tokens.splice(i - j - 1, j + 2, [STRING, buffer.join('')]);
-          buffer = [];
-          j = 0;
+        } else if (token[0] !== strtype) {
+          buffer.push(token[1]);
+          tokens.splice(i--, 1);
+          continue;
         }
-      } else strtype = token[0];
+        else {
+          tokens.splice(i, 1, [STRING, buffer.join('')]);
+          buffer = [];
+        }
+      }  else {
+        strtype = token[0];
+        tokens.splice(i--, 1);
+      }
       instr = !instr;
     } else if (instr) {
-      if (token[0] !== BACKSLASH) buffer.push(token[1]);
-      j++;
+      buffer.push(token[1]);
+      tokens.splice(i--, 1);
     }
   }
 
@@ -139,7 +195,9 @@ function reduce_tokens(tokens) {
   for (i = 0; i < tokens.length; i++) {
     token = tokens[i];
     if (token[0] === OTHER) {
-      val = tjp.base.trim(token[1]);
+      try {
+        val = tjp.base.trim(token[1]);
+      } catch (e) { print(rev[token[0]] + ": " + (typeof token[1])); throw e; }
       if (!val) tokens.splice(i, 1);
       else {
         token[1] = val;
@@ -149,7 +207,7 @@ function reduce_tokens(tokens) {
         else if (val === "undefined") token[0] = UNDEFINED;
         else if (val === "Infinity") token[0] = INFINITY;
         else if (val === "-Infinity") token[0] = NEGATIVE_INFINITY;
-        else if (val.match(/^-?((\d+(\.(\d+)?)?)|(\.\d+))([eE]-?\d+)?$/))
+        else if (number_regex.test(val))
           token[0] = NUMBER;
         else token[0] = IDENTIFIER;
       }
@@ -159,7 +217,7 @@ function reduce_tokens(tokens) {
 
 function parse_tokens(tokens) {
   var stack = [{
-    type: OPEN_STRAIGHT,
+    type: OPEN_BRACKET,
     obj: [],
     postcomma: false,
     juststarted: true
@@ -172,10 +230,10 @@ function parse_tokens(tokens) {
 };
 
 var parsers = {};
-parsers[OPEN_STRAIGHT] = parse_open_straight;
-parsers[CLOSE_STRAIGHT] = parse_close_straight;
-parsers[OPEN_CURLY] = parse_open_curly;
-parsers[CLOSE_CURLY] = parse_close_curly;
+parsers[OPEN_BRACKET] = parse_open_straight;
+parsers[CLOSE_BRACKET] = parse_close_straight;
+parsers[OPEN_BRACE] = parse_open_curly;
+parsers[CLOSE_BRACE] = parse_close_curly;
 parsers[COMMA] = parse_comma;
 parsers[COLON] = parse_colon;
 parsers[STRING] = parse_string;
@@ -187,12 +245,12 @@ parsers[IDENTIFIER] = parse_identifier;
 
 function apply_value(stack, value) {
   var stacktop = stack[stack.length - 1];
-  if (stacktop.type === OPEN_CURLY) {
+  if (stacktop.type === OPEN_BRACE) {
     if (stacktop.postcolon) {
       stacktop.obj[stacktop.key] = value;
       stacktop.postcolon = false;
     } else throw new Error("Bad syntax");
-  } else if (stacktop.type === OPEN_STRAIGHT) {
+  } else if (stacktop.type === OPEN_BRACKET) {
     if (stacktop.postcomma || stacktop.juststarted) {
       stacktop.obj.push(value);
       stacktop.postcomma = stacktop.juststarted = false;
@@ -202,7 +260,7 @@ function apply_value(stack, value) {
 
 function parse_open_straight(stack, token) {
   stack.push({
-    type: OPEN_STRAIGHT,
+    type: OPEN_BRACKET,
     obj: [],
     postcomma: false,
     juststarted: true
@@ -211,14 +269,14 @@ function parse_open_straight(stack, token) {
 
 function parse_close_straight(stack, token) {
   var stacktop = stack[stack.length - 1], arr;
-  if (stacktop.type !== OPEN_STRAIGHT) throw new Error("mismatched ']'");
+  if (stacktop.type !== OPEN_BRACKET) throw new Error("mismatched ']'");
   arr = stack.pop().obj;
   stacktop = stack[stack.length - 1];
   switch(stacktop.type) {
-    case OPEN_CURLY:
+    case OPEN_BRACE:
       stacktop.obj[stacktop.key] = arr;
       break;
-    case OPEN_STRAIGHT:
+    case OPEN_BRACKET:
       stacktop.obj.push(arr);
       break;
     default:
@@ -228,7 +286,7 @@ function parse_close_straight(stack, token) {
 
 function parse_open_curly(stack, token) {
   stack.push({
-    type: OPEN_CURLY,
+    type: OPEN_BRACE,
     obj: {},
     key: '',
     postcomma: false,
@@ -239,14 +297,14 @@ function parse_open_curly(stack, token) {
 
 function parse_close_curly(stack, token) {
   var stacktop = stack[stack.length - 1], arr;
-  if (stacktop.type !== OPEN_CURLY) throw new Error("mismatched ']'");
+  if (stacktop.type !== OPEN_BRACE) throw new Error("mismatched ']'");
   obj = stack.pop().obj;
   stacktop = stack[stack.length - 1];
   switch(stacktop.type) {
-    case OPEN_CURLY:
+    case OPEN_BRACE:
       stacktop.obj[stacktop.key] = obj;
       break;
-    case OPEN_STRAIGHT:
+    case OPEN_BRACKET:
       stacktop.obj.push(obj);
       break;
     default:
@@ -256,7 +314,7 @@ function parse_close_curly(stack, token) {
 
 function parse_identifier(stack, token) {
   var stacktop = stack[stack.length - 1];
-  if (stacktop.type === OPEN_CURLY &&
+  if (stacktop.type === OPEN_BRACE &&
       (stacktop.postcomma || stacktop.juststarted)) {
     stacktop.key = token[1];
     stacktop.postcomma = stacktop.juststarted = false;
@@ -270,13 +328,13 @@ function parse_comma(stack, token) {
 
 function parse_colon(stack, token) {
   var stacktop = stack[stack.length - 1];
-  if (stacktop.type !== OPEN_CURLY) throw new Error("bad context for a COLON");
+  if (stacktop.type !== OPEN_BRACE) throw new Error("bad context for a COLON");
   stacktop.postcolon = true;
 };
 
 function parse_string(stack, token) {
   var stacktop = stack[stack.length - 1];
-  if (stacktop.type === OPEN_CURLY &&
+  if (stacktop.type === OPEN_BRACE &&
       (stacktop.postcomma || stacktop.juststarted)) {
     stacktop.key = token[1];
     stacktop.postcomma = stacktop.juststarted = false;
@@ -310,7 +368,7 @@ function find_matching(opener, closer, tokens) {
   throw new Error("No matching '" + closer + "' found");
 };
 
-tjp.json.load = tjp.json.decode = function(data) {
+tjp.json.load = tjp.json.decode = tjp.json.parse = function(data) {
   var tokens = tokenize(data);
   reduce_tokens(tokens);
   return parse_tokens(tokens);
