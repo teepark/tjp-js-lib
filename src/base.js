@@ -75,21 +75,24 @@ tjp.base.urldecode = function(dataStr) {
   return results;
 };
 
+var ltrim_regex = RegExp('^\\s\\s*'),
+    space_regex = RegExp('\\s');
+
 tjp.base.trim = function (str) {
-  var i, ws = /\s/;
-  str = str.replace(/^\s\s*/, '');
+  var i;
+  str = str.replace(ltrim_regex, '');
   i = str.length;
-  while (ws.test(str.charAt(--i)));
+  while (space_regex.test(str.charAt(--i)));
   return str.slice(0, i + 1);
 };
 
 tjp.base.ltrim = function(str) {
-  return str.replace(/^\s\s*/, '');
+  return str.replace(ltrim_regex, '');
 };
 
 tjp.base.rtrim = function(str) {
-  var ws = /\s/, i = str.length;
-  while (ws.test(str.charAt(--i)));
+  var i = str.length;
+  while (space_regex.test(str.charAt(--i)));
   return str.slice(0, i + 1);
 };
 
