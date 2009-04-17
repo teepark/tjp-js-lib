@@ -415,13 +415,13 @@ var ADD_SLASHES = {
   "\t": "\\t",
   "\b": "\\b",
   "\f": "\\f",
-  "\\": "\\\\",
   '"': '\\"'
 };
 
 function dump_string(str) {
   var from;
-  for (from in ADD_SLASHES) str.replace(from, ADD_SLASHES[from], 'g');
+  str = str.replace('\\', '\\\\');
+  for (from in ADD_SLASHES) str = str.replace(from, ADD_SLASHES[from], 'g');
   return '"' + str + '"';
 };
 
