@@ -30,24 +30,24 @@ bisect.insort_left(array, item[, low[, high]])
   are provided, limits the search to within those indexes.
 */
 
-/*global tjp*/
+/*global TJP*/
 //context:browser
 //context:console
 
 var defaults = {
   'low': 0,
   'high': -1,
-  'sorter': tjp.base.sorter
+  'sorter': TJP.base.sorter
 };
 
 function findIndex(arr, item) {
-  var md, s, o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]),
+  var md, s, o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]),
     high = o.high >= o.low ? o.high : arr.length, low = o.low;
   while (1) {
     if (high === low) return [low, false];
 
     md = Math.floor((high + low) / 2);
-    s = tjp.base.sorter(arr[md], item);
+    s = TJP.base.sorter(arr[md], item);
 
     if (s > 0) high = md;
     else if (s < 0) low = md + 1;
@@ -55,34 +55,34 @@ function findIndex(arr, item) {
   }
 };
 
-tjp.bisect = {};
+TJP.bisect = TJP.bisect || {};
 
-tjp.bisect.bisect_right = function(arr, item) {
-  var i, o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]),
+TJP.bisect.bisect_right = function(arr, item) {
+  var i, o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]),
     indexFound = findIndex(arr, item, o);
   if (!indexFound[1]) return indexFound[0];
   for (i = indexFound[0] + 1; arr[i] === item && i < arr.length; i++);
   return i;
 };
 
-tjp.bisect.bisect_left = function(arr, item) {
-  var i, o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]),
+TJP.bisect.bisect_left = function(arr, item) {
+  var i, o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]),
     indexFound = findIndex(arr, item, o);
   if (!indexFound[1]) return indexFound[0];
   for (i = indexFound[0] - 1; arr[i] === item && i >= 0; i--);
   return i;
 };
 
-tjp.bisect.bisect = tjp.bisect.bisect_right;
+TJP.bisect.bisect = TJP.bisect.bisect_right;
 
-tjp.bisect.insort_right = function(arr, item) {
-  var o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]);
-  arr.splice(tjp.bisect.bisect_right(arr, item, o), 0, item);
+TJP.bisect.insort_right = function(arr, item) {
+  var o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]);
+  arr.splice(TJP.bisect.bisect_right(arr, item, o), 0, item);
 };
 
-tjp.bisect.insort_left = function(arr, item) {
-  var o = tjp.base.extend(tjp.base.extend({}, defaults), arguments[2]);
-  arr.splice(tjp.bisect.bisect_left(arr, item, low, high), 0, item);
+TJP.bisect.insort_left = function(arr, item) {
+  var o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]);
+  arr.splice(TJP.bisect.bisect_left(arr, item, low, high), 0, item);
 };
 
-tjp.bisect.insort = tjp.bisect.insort_right;
+TJP.bisect.insort = TJP.bisect.insort_right;

@@ -1,9 +1,9 @@
-/*global tjp,print,readline*/
+/*global TJP,print,readline*/
 //context:console
 
-tjp.spidermonkey = {};
+TJP.spidermonkey = TJP.spidermonkey || {};
 
-tjp.spidermonkey.stdin = {
+TJP.spidermonkey.stdin = {
   'read': function() {
     var lines = [], line;
     while (1) {
@@ -16,7 +16,7 @@ tjp.spidermonkey.stdin = {
   'readline': readline
 };
 
-tjp.spidermonkey.stdout = {
+TJP.spidermonkey.stdout = {
   'write': print,
   'writeline': print
 };

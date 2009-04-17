@@ -45,10 +45,10 @@ Response objects:
     - headers: an object whose name/value pairs are the headers of the response
 */
 
-/*global tjp, ActiveXObject*/
+/*global TJP, ActiveXObject*/
 //context:browser
 
-tjp.http = {};
+TJP.http = TJP.http || {};
 
 var defaultRequestOptions = {
   url: null,
@@ -94,31 +94,31 @@ function parseHeaders(raw) {
   return result;
 };
 
-tjp.http.get = function(o) {
-  return tjp.http.request(tjp.base.extend(tjp.base.extend({}, o),
+TJP.http.get = function(o) {
+  return TJP.http.request(TJP.base.extend(TJP.base.extend({}, o),
       {method: "GET"}));
 };
 
-tjp.http.post = function(o) {
-  return tjp.http.request(tjp.base.extend(tjp.base.extend({}, o),
+TJP.http.post = function(o) {
+  return TJP.http.request(TJP.base.extend(TJP.base.extend({}, o),
       {method: "POST"}));
 };
 
-tjp.http.head = function(o) {
-  return tjp.http.request(tjp.base.extend(tjp.base.extend({}, o),
+TJP.http.head = function(o) {
+  return TJP.http.request(TJP.base.extend(TJP.base.extend({}, o),
       {method: "HEAD"}));
 };
 
-tjp.http.request = function(o) {
+TJP.http.request = function(o) {
   var name, xhr, tout = null;
 
   xhr = makeXHR();
 
-  o = tjp.base.extend(tjp.base.extend({}, defaultRequestOptions), o);
+  o = TJP.base.extend(TJP.base.extend({}, defaultRequestOptions), o);
   o.method = o.method.toString().toUpperCase();
 
   if (o.parseData && !(o.data instanceof String))
-    o.data = tjp.base.urlencode(o.data);
+    o.data = TJP.base.urlencode(o.data);
   o.data = o.data.toString();
   if (o.data && (o.method === "GET" || o.method === "HEAD")) {
     o.url += "?" + o.data;

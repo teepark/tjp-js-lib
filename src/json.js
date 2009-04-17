@@ -11,7 +11,7 @@ json.encode(obj)
   returns a string of JSON that represents the object
 */
 
-/*global tjp*/
+/*global TJP*/
 //context:browser
 //context:console
 
@@ -41,7 +41,7 @@ var
 /* comment this out for production
 var ltrim_regex = RegExp('^\\s\\s*'),
     space_regex = RegExp('\\s');
-var tjp = tjp || {
+var TJP = TJP || {
   base: {
     trim: function(str) {
       var i;
@@ -84,7 +84,7 @@ function show(tokens) {
 };
 //*/
 
-tjp.json = tjp.json || {};
+TJP.json = TJP.json || {};
 
 var CHAR_TOKENS = {
   '"': DOUBLE_QUOTE,
@@ -195,7 +195,7 @@ function reduce_tokens(tokens) {
   for (i = 0; i < tokens.length; i++) {
     token = tokens[i];
     if (token[0] === OTHER) {
-      val = tjp.base.trim(token[1]);
+      val = TJP.base.trim(token[1]);
       if (!val) tokens.splice(i, 1);
       else {
         token[1] = val;
@@ -366,7 +366,7 @@ function find_matching(opener, closer, tokens) {
   throw new Error("No matching '" + closer + "' found");
 };
 
-tjp.json.load = tjp.json.decode = tjp.json.parse = function(data) {
+TJP.json.load = TJP.json.decode = TJP.json.parse = function(data) {
   var tokens = tokenize(data);
   reduce_tokens(tokens);
   return parse_tokens(tokens);
@@ -396,7 +396,7 @@ function gettype(obj) {
 function dump_array(arr) {
   var dumped = [], i;
   for (i = 0; i < arr.length; i++) {
-    dumped.push(tjp.json.dump(arr[i]));
+    dumped.push(TJP.json.dump(arr[i]));
   }
   return dumped.join('');
 };
@@ -404,7 +404,7 @@ function dump_array(arr) {
 function dump_object(obj) {
   var dumped = [], name;
   for (name in obj) {
-    dumped.push(name + ":" + tjp.json.dump(obj[name]));
+    dumped.push(name + ":" + TJP.json.dump(obj[name]));
   }
   return "{" + dumped.join(',') + "}";
 };
@@ -425,7 +425,7 @@ function dump_string(str) {
   return '"' + str + '"';
 };
 
-tjp.json.dump = tjp.json.encode = function(data) {
+TJP.json.dump = TJP.json.encode = function(data) {
   var type = gettype(data);
   switch(type) {
     case "number":

@@ -26,77 +26,77 @@ operator.isinstance(obj, klass) <--> obj instanceof klass
 operator.instantiate(klass, a, b) <--> new klass(a, b, ...)
 */
 
-/*global tjp*/
+/*global TJP*/
 //context:browser
 //context:console
 
-tjp.operator = {};
+TJP.operator = TJP.operator || {};
 
-tjp.operator.add = function() {
+TJP.operator.add = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total += arguments[i];
   return total;
 };
 
-tjp.operator.sub = function() {
+TJP.operator.sub = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total -= arguments[i];
   return total;
 };
 
-tjp.operator.mult = function() {
+TJP.operator.mult = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total *= arguments[i];
   return total;
 };
 
-tjp.operator.div = function() {
+TJP.operator.div = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total /= arguments[i];
   return total;
 };
 
-tjp.operator.mod = function() {
+TJP.operator.mod = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total %= arguments[i];
   return total;
 };
 
-tjp.operator.boolAnd = function() {
+TJP.operator.boolAnd = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total = total && arguments[i];
   return total;
 };
 
-tjp.operator.boolOr = function() {
+TJP.operator.boolOr = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total = total || arguments[i];
   return total;
 };
 
-tjp.operator.bitAnd = function() {
+TJP.operator.bitAnd = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total = total & arguments[i];
   return total;
 };
 
-tjp.operator.bitOr = function() {
+TJP.operator.bitOr = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total = total | arguments[i];
   return total;
 };
 
-tjp.operator.bitXOr = function() {
+TJP.operator.bitXOr = function() {
   var i, total = arguments[0];
   for (i = 1; i < arguments.length; i++) total = total ^ arguments[i];
   return total;
 };
 
-tjp.operator.isinstance = function(obj, klass) {
+TJP.operator.isinstance = function(obj, klass) {
   return obj instanceof klass;
 };
 
-tjp.operator.instantiate = function(Klass) {
+TJP.operator.instantiate = function(Klass) {
   var args = Array.prototype.slice.call(arguments, 1);
   switch(args.length) {
     case 0:

@@ -67,17 +67,17 @@ function paramtransform(func, transformer)
   func)
 */
 
-/*global tjp*/
+/*global TJP*/
 //context:browser
 //context:console
 
-tjp.functional = {};
+TJP.functional = TJP.functional || {};
 
 function isfunc(f) {
   if (typeof f !== "function") throw new TypeError();
 };
 
-tjp.functional.map = function(func, arr) {
+TJP.functional.map = function(func, arr) {
   if (Array.prototype.map) return arr.map(func);
 
   var results, i, len;
@@ -88,7 +88,7 @@ tjp.functional.map = function(func, arr) {
   return results;
 };
 
-tjp.functional.filter = function(func, arr) {
+TJP.functional.filter = function(func, arr) {
   if (Array.prototype.filter) return arr.filter(func);
 
   var results, i, val;
@@ -101,14 +101,14 @@ tjp.functional.filter = function(func, arr) {
   return results;
 };
 
-tjp.functional.foreach = function(func, arr) {
+TJP.functional.foreach = function(func, arr) {
   if (Array.prototype.forEach) return arr.forEach(func);
 
   isfunc(func);
   for (var i = 0; i < arr.length; i++) if (i in arr) func(arr[i], i, arr);
 };
 
-tjp.functional.all = function(func, arr) {
+TJP.functional.all = function(func, arr) {
   if (Array.prototype.every) return arr.every(func);
 
   isfunc(func);
@@ -118,7 +118,7 @@ tjp.functional.all = function(func, arr) {
   return true;
 };
 
-tjp.functional.any = function(func, arr) {
+TJP.functional.any = function(func, arr) {
   if (Array.prototype.some) return arr.some(func);
 
   isfunc(func);
@@ -128,7 +128,7 @@ tjp.functional.any = function(func, arr) {
   return false;
 };
 
-tjp.functional.partial = function(func) {
+TJP.functional.partial = function(func) {
   var outer = arguments;
   return function() {
     var i, args = Array.prototype.slice.call(outer, 1);
@@ -137,7 +137,7 @@ tjp.functional.partial = function(func) {
   };
 };
 
-tjp.functional.revpartial = function(func) {
+TJP.functional.revpartial = function(func) {
   var outer = arguments;
   return function() {
     var i;
@@ -147,7 +147,7 @@ tjp.functional.revpartial = function(func) {
   };
 };
 
-tjp.functional.foldleft = function(func, arr, initial) {
+TJP.functional.foldleft = function(func, arr, initial) {
   if (Array.prototype.reduce) return arr.reduce(func, initial);
 
   isfunc(func);
@@ -171,13 +171,13 @@ tjp.functional.foldleft = function(func, arr, initial) {
   return val;
 };
 
-tjp.functional.foldright = function(func, arr, initial) {
+TJP.functional.foldright = function(func, arr, initial) {
   if (Array.prototype.reduceRight) return arr.reduceRight(func, initial);
 
-  return tjp.functional.foldleft(func, arr.slice().reverse(), initial);
+  return TJP.functional.foldleft(func, arr.slice().reverse(), initial);
 };
 
-tjp.functional.compose = function() {
+TJP.functional.compose = function() {
   var args = arguments;
   return function(item) {
     var i;
@@ -186,29 +186,29 @@ tjp.functional.compose = function() {
   };
 };
 
-tjp.functional.generate = function(item) {
+TJP.functional.generate = function(item) {
   return function() { return item; };
 };
 
-tjp.functional.id = function(item) {
+TJP.functional.id = function(item) {
   return item;
 };
 
-tjp.functional.propgetter = function(obj, name) {
+TJP.functional.propgetter = function(obj, name) {
   return obj[name];
 };
 
-tjp.functional.propsetter = function(obj, name, value) {
+TJP.functional.propsetter = function(obj, name, value) {
   obj[name] = value;
 };
 
-tjp.functional.methodrunner = function(obj, name) {
+TJP.functional.methodrunner = function(obj, name) {
   var args = [], i;
   for (i = 2; i < arguments.length; i++) args.push(arguments[i]);
   return obj[name].apply(obj, args);
 };
 
-tjp.functional.paramtransform = function(func, transformer) {
+TJP.functional.paramtransform = function(func, transformer) {
   return function() {
     var args = transformer.apply(null, arguments);
     return func.apply(null, args);

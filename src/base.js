@@ -28,7 +28,7 @@ base.ltrim(str)
 base.sorter(obj, obj)
   the sorting function used throughout the library by default
 */
-/*global tjp*/
+/*global TJP*/
 
 function coerce(str) {
   // a safer eval
@@ -41,14 +41,14 @@ function coerce(str) {
   return str;
 };
 
-tjp.base = {};
+TJP.base = TJP.base || {};
 
-tjp.base.extend = function(extended, extender) {
+TJP.base.extend = function(extended, extender) {
   for(var name in extender) extended[name] = extender[name];
   return extended;
 };
 
-tjp.base.urlencode = function(dataObj) {
+TJP.base.urlencode = function(dataObj) {
   var i, name, values, results = [];
   for (name in dataObj) {
     values = dataObj[name] instanceof Array ? dataObj[name] : [dataObj[name]];
@@ -61,7 +61,7 @@ tjp.base.urlencode = function(dataObj) {
   return results.join("&");
 };
 
-tjp.base.urldecode = function(dataStr) {
+TJP.base.urldecode = function(dataStr) {
   var i, name, value, pair, pairs, results = {};
   pairs = dataStr.split("&");
   for (i = 0; i < pairs.length; i++) {
@@ -78,7 +78,7 @@ tjp.base.urldecode = function(dataStr) {
 var ltrim_regex = RegExp('^\\s\\s*'),
     space_regex = RegExp('\\s');
 
-tjp.base.trim = function (str) {
+TJP.base.trim = function (str) {
   var i;
   str = str.replace(ltrim_regex, '');
   i = str.length;
@@ -86,18 +86,18 @@ tjp.base.trim = function (str) {
   return str.slice(0, i + 1);
 };
 
-tjp.base.ltrim = function(str) {
+TJP.base.ltrim = function(str) {
   return str.replace(ltrim_regex, '');
 };
 
-tjp.base.rtrim = function(str) {
+TJP.base.rtrim = function(str) {
   var i = str.length;
   while (space_regex.test(str.charAt(--i)));
   return str.slice(0, i + 1);
 };
 
 var typeorder = ["number", "string", "object", "undefined"];
-tjp.base.sorter = function(a, b) {
+TJP.base.sorter = function(a, b) {
   var i, ta, tb, s, alen, blen;
 
   ta = typeorder.indexOf((typeof a));
@@ -122,7 +122,7 @@ tjp.base.sorter = function(a, b) {
       alen = a.length;
       blen = b.length;
       for (i = 0; i < Math.min(alen, blen); i++) {
-        s = tjp.base.sorter(a[i], b[i]);
+        s = TJP.base.sorter(a[i], b[i]);
         if (s !== 0) return s;
       }
       if (alen > blen) return 1;

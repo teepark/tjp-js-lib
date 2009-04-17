@@ -1,1 +1,1 @@
-(function(tjp) {
+(function() {

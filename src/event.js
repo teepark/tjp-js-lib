@@ -16,11 +16,11 @@ event.dispatch(targetObj, evName)
   trigger an event yourself
 */
 
-/*global tjp*/
+/*global TJP*/
 //context:browser
 //context:console
 
-tjp.event = {};
+TJP.event = TJP.event || {};
 
 var fixEvent = function(target) {
   target.preventDefault = fixEvent.preventDefault;
@@ -48,7 +48,7 @@ var
     return rv;
   };
 
-tjp.event.add = function(target, type, handler) {
+TJP.event.add = function(target, type, handler) {
   if (!handler.__guid) handler.__guid = guid++;
   if (!events[target]) events[target] = {};
   var handlers = events[target][type];
@@ -63,11 +63,11 @@ tjp.event.add = function(target, type, handler) {
   };
 };
 
-tjp.event.remove = function(target, type, handler) {
+TJP.event.remove = function(target, type, handler) {
   if (events[target] && events[target][type])
     delete events[target][type][handler.__guid];
 };
 
-tjp.event.dispatch = function(target, type) {
+TJP.event.dispatch = function(target, type) {
   if (target["on" + type]) target["on" + type]();
 };

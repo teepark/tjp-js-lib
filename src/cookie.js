@@ -31,10 +31,10 @@ cookie.clear()
   clears all the cookies that are currently available
 */
 
-/*global tjp*/
+/*global TJP*/
 //context:browser
 
-tjp.cookie = {};
+TJP.cookie = TJP.cookie || {};
 
 var defaultOptions = {
   path: "/",
@@ -44,7 +44,7 @@ var defaultOptions = {
 };
 defaultOptions["max-age"] = null;
 
-tjp.cookie.get = function(name) {
+TJP.cookie.get = function(name) {
   var i, pairs, pair, result = {};
   pairs = document.cookie.split("; ");
   for (i = 0; i < pairs.length; i++) {
@@ -54,16 +54,16 @@ tjp.cookie.get = function(name) {
   return null;
 };
 
-tjp.cookie.set = function(name, value, options) {
+TJP.cookie.set = function(name, value, options) {
   var opt, expdate, cookiestr, ck;
 
   if ((typeof name) === "object") {
     // name is the mapping, value is now the options
-    for (ck in name) tjp.cookie.set(ck, name[ck], value);
+    for (ck in name) TJP.cookie.set(ck, name[ck], value);
     return;
   }
 
-  options = tjp.base.extend(tjp.base.extend({}, defaultOptions),
+  options = TJP.base.extend(TJP.base.extend({}, defaultOptions),
       options || {});
 
   expdate = Date.parse(options.expires);
@@ -86,16 +86,16 @@ tjp.cookie.set = function(name, value, options) {
   document.cookie = cookiestr;
 };
 
-tjp.cookie.remove = function(name) {
-  tjp.cookie.set(name, "", {"max-age": 0});
+TJP.cookie.remove = function(name) {
+  TJP.cookie.set(name, "", {"max-age": 0});
 };
 
-tjp.cookie.clear = function() {
-  var name, ck = tjp.cookie.getall();
-  for (name in ck) tjp.cookie.remove(name);
+TJP.cookie.clear = function() {
+  var name, ck = TJP.cookie.getall();
+  for (name in ck) TJP.cookie.remove(name);
 };
 
-tjp.cookie.getall = function() {
+TJP.cookie.getall = function() {
   var i, pairs, pair, result = {};
   pairs = document.cookie.split("; ");
   for (i = 0; i < pairs.length; i++) {

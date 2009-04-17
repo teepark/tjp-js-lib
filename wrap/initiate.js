@@ -1,3 +1,2 @@
-var com;
-com = com || {};
-com.travisjparker = com.travisjparker || {};
+var TJP;
+TJP = TJP || {};
