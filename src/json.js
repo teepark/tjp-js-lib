@@ -98,7 +98,7 @@ var CHAR_TOKENS = {
   ':': COLON
 };
 
-var REPLACEMENTS = {
+var REMOVE_SLASHES = {
   'n': '\n',
   'r': '\r',
   't': '\t',
@@ -140,7 +140,7 @@ function reduce_tokens(tokens) {
           tokens.splice(i, 2, [OTHER, '\\\\']);
           break;
         case OTHER:
-          replacement = REPLACEMENTS[next[1].slice(0, 1)];
+          replacement = REMOVE_SLASHES[next[1].slice(0, 1)];
           if (replacement)
             tokens.splice(i, 2, [OTHER, replacement + next[1].slice(1)]);
           else tokens.splice(i--, 1);
@@ -372,6 +372,77 @@ tjp.json.load = tjp.json.decode = tjp.json.parse = function(data) {
   return parse_tokens(tokens);
 };
 
-tjp.json.dump = tjp.json.encode = function(data) {
+function gettype(obj) {
+  var dumbtype = typeof obj;
+  switch(dumbtype) {
+    case "number":
+      if (isNaN(obj)) return "NaN";
+    case "string":
+    case "boolean":
+    case "undefined":
+      return dumbtype;
+    case "object":
+      if (obj instanceof Number) return "number";
+      if (obj instanceof String) return "string";
+      if (obj instanceof Boolean) return "boolean";
+      if (obj instanceof Array) return "array";
+      if (obj instanceof Date) return "date";
+      if (obj instanceof RegExp) return "regexp";
+      if (obj === null) return "null";
+      return "object";
+  }
+};
 
+function dump_array(arr) {
+  var dumped = [], i;
+  for (i = 0; i < arr.length; i++) {
+    dumped.push(tjp.json.dump(arr[i]));
+  }
+  return dumped.join('');
+};
+
+function dump_object(obj) {
+  var dumped = [], name;
+  for (name in obj) {
+    dumped.push(name + ":" + tjp.json.dump(obj[name]));
+  }
+  return "{" + dumped.join(',') + "}";
+};
+
+var ADD_SLASHES = {
+  "\n": "\\n",
+  "\r": "\\r",
+  "\t": "\\t",
+  "\b": "\\b",
+  "\f": "\\f",
+  "\\": "\\\\",
+  '"': '\\"'
+};
+
+function dump_string(str) {
+  var from;
+  for (from in ADD_SLASHES) str.replace(from, ADD_SLASHES[from], 'g');
+  return '"' + str + '"';
+};
+
+tjp.json.dump = tjp.json.encode = function(data) {
+  var type = gettype(data);
+  switch(type) {
+    case "number":
+    case "boolean":
+      return data.toString();
+    case "string":
+      return dump_string(data);
+    case "undefined":
+    case "NaN":
+    case "null":
+      return type;
+    case "array":
+      return dump_array(data);
+    case "object":
+      return dump_object(data);
+    case "date":
+    case "regexp":
+      throw new Error("can't serialize a " + type);
+  }
 };
