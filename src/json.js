@@ -82,7 +82,7 @@ function show(tokens) {
     print(rev[token[0]] + spaces.join('') + token[1]);
   }
 };
-//*/
+*/
 
 TJP.json = TJP.json || {};
 
@@ -107,7 +107,7 @@ var REMOVE_SLASHES = {
 };
 
 function tokenize(data) {
-  var i, ch, tokens = [], buffer = [];
+  var i, ch, tokens = [], buffer = [], token;
 
   for (i = 0; i < data.length; i++) {
     ch = data[i];
@@ -213,34 +213,6 @@ function reduce_tokens(tokens) {
   }
 };
 
-function parse_tokens(tokens) {
-  var stack = [{
-    type: OPEN_BRACKET,
-    obj: [],
-    postcomma: false,
-    juststarted: true
-  }], token;
-  while (tokens.length) {
-    token = tokens.shift();
-    parsers[token[0]](stack, token);
-  }
-  return stack[0].obj[0];
-};
-
-var parsers = {};
-parsers[OPEN_BRACKET] = parse_open_straight;
-parsers[CLOSE_BRACKET] = parse_close_straight;
-parsers[OPEN_BRACE] = parse_open_curly;
-parsers[CLOSE_BRACE] = parse_close_curly;
-parsers[COMMA] = parse_comma;
-parsers[COLON] = parse_colon;
-parsers[STRING] = parse_string;
-parsers[NUMBER] = parse_number;
-parsers[NEGATIVE_INFINITY] = parsers[NULL] = parse_simple_value;
-parsers[UNDEFINED] = parsers[INFINITY] = parse_simple_value;
-parsers[TRUE] = parsers[FALSE] = parse_simple_value;
-parsers[IDENTIFIER] = parse_identifier;
-
 function apply_value(stack, value) {
   var stacktop = stack[stack.length - 1];
   if (stacktop.type === OPEN_BRACE) {
@@ -254,6 +226,17 @@ function apply_value(stack, value) {
       stacktop.postcomma = stacktop.juststarted = false;
     } else throw new Error("Bad syntax");
   } else throw new Error("Parser Error");
+};
+
+function find_matching(opener, closer, tokens) {
+  var i, token, count = 1;
+  for (i = 0; i < tokens.length; i++) {
+    token = tokens[i][0];
+    if (token === opener) count++;
+    else if (token === closer) count--;
+    if (!count) return i;
+  }
+  throw new Error("No matching '" + closer + "' found");
 };
 
 function parse_open_straight(stack, token) {
@@ -294,7 +277,7 @@ function parse_open_curly(stack, token) {
 };
 
 function parse_close_curly(stack, token) {
-  var stacktop = stack[stack.length - 1], arr;
+  var stacktop = stack[stack.length - 1], arr, obj;
   if (stacktop.type !== OPEN_BRACE) throw new Error("mismatched ']'");
   obj = stack.pop().obj;
   stacktop = stack[stack.length - 1];
@@ -355,15 +338,32 @@ function parse_simple_value(stack, token) {
   apply_value(stack, simple_values[token[0]]);
 };
 
-function find_matching(opener, closer, tokens) {
-  var i, token, count = 1;
-  for (i = 0; i < tokens.length; i++) {
-    token = tokens[i][0];
-    if (token === opener) count++;
-    else if (token == closer) count--;
-    if (!count) return i;
+var parsers = {};
+parsers[OPEN_BRACKET] = parse_open_straight;
+parsers[CLOSE_BRACKET] = parse_close_straight;
+parsers[OPEN_BRACE] = parse_open_curly;
+parsers[CLOSE_BRACE] = parse_close_curly;
+parsers[COMMA] = parse_comma;
+parsers[COLON] = parse_colon;
+parsers[STRING] = parse_string;
+parsers[NUMBER] = parse_number;
+parsers[NEGATIVE_INFINITY] = parsers[NULL] = parse_simple_value;
+parsers[UNDEFINED] = parsers[INFINITY] = parse_simple_value;
+parsers[TRUE] = parsers[FALSE] = parse_simple_value;
+parsers[IDENTIFIER] = parse_identifier;
+
+function parse_tokens(tokens) {
+  var stack = [{
+    type: OPEN_BRACKET,
+    obj: [],
+    postcomma: false,
+    juststarted: true
+  }], token;
+  while (tokens.length) {
+    token = tokens.shift();
+    parsers[token[0]](stack, token);
   }
-  throw new Error("No matching '" + closer + "' found");
+  return stack[0].obj[0];
 };
 
 TJP.json.load = TJP.json.decode = TJP.json.parse = function(data) {
