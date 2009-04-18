@@ -19,9 +19,9 @@ publish () {
 		cat $WRAP/startscope.js $infile $WRAP/endscope.js >> $out
 	done
 
-	which jsmin && cat $out | jsmin > $BUILD/`basename $out .js`-min.js
-	which jscompress && cat $out | jscompress > $BUILD/`basename $out .js`-compress.js
-	which jspack && cat $out | jspack > $BUILD/`basename $out .js`-pack.js
+	which jsmin > /dev/null && cat $out | jsmin > $BUILD/`basename $out .js`-min.js
+	which jscompress > /dev/null && cat $out | jscompress > $BUILD/`basename $out .js`-compress.js
+	which jspack > /dev/null && cat $out | jspack > $BUILD/`basename $out .js`-pack.js
 }
 
 # custom combination
