@@ -82,7 +82,7 @@ TJP.bisect.insort_right = function(arr, item) {
 
 TJP.bisect.insort_left = function(arr, item) {
   var o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]);
-  arr.splice(TJP.bisect.bisect_left(arr, item, low, high), 0, item);
+  arr.splice(TJP.bisect.bisect_left(arr, item, o), 0, item);
 };
 
 TJP.bisect.insort = TJP.bisect.insort_right;

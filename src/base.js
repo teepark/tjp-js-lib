@@ -75,8 +75,8 @@ TJP.base.urldecode = function(dataStr) {
   return results;
 };
 
-var ltrim_regex = RegExp('^\\s\\s*'),
-    space_regex = RegExp('\\s');
+var ltrim_regex = new RegExp('^\\s\\s*'),
+    space_regex = new RegExp('\\s');
 
 TJP.base.trim = function (str) {
   var i;
@@ -132,7 +132,6 @@ TJP.base.sorter = function(a, b) {
     if (a.length !== undefined && b.length === undefined) return -1;
     if (a.length === undefined && b.length !== undefined) return 1;
     break; //might as well satisfy jslint
-  case "undefined":
   default:
     return 0;
   }
