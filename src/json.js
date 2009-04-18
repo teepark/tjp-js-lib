@@ -420,7 +420,7 @@ var ADD_SLASHES = {
 
 function dump_string(str) {
   var from;
-  str = str.replace('\\', '\\\\');
+  str = str.replace('\\', '\\\\', 'g');
   for (from in ADD_SLASHES) str = str.replace(from, ADD_SLASHES[from], 'g');
   return '"' + str + '"';
 };
