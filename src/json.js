@@ -377,7 +377,7 @@ function dump_array(arr) {
   for (i = 0; i < arr.length; i++) {
     dumped.push(TJP.json.dump(arr[i]));
   }
-  return dumped.join('');
+  return dumped.join(',');
 };
 
 function dump_object(obj) {
