@@ -24,21 +24,45 @@ publish () {
 	which jspack > /dev/null 2>&1 && cat $out | jspack > $BUILD/`basename $out .js`-pack.js
 }
 
-# custom combination
-if [ $2 ]; then
-	out=$1
-	shift
-	args=$SRC/base.js
-	for name in $@; do
-		if [ `basename $name .js` != base ]; then
-			args+=" $SRC/`basename $name .js`.js"
-		fi
-	done
-	publish $out $args
-else
-	# full library
-	publish full $SRC/base.js `find $SRC -name '*.js' | grep -v base\.js | sort`
+usage() {
+	cat <<EOF
+USAGE:
+./build.sh [ <outname> <modulename1>... ]
 
+create a build/ directory and write usable javascript files into it
+
+for every output published, always creates an uncompressed version, then
+also writes a compressed version for each utility found of jsmin,
+jscompress, and jspack.
+
+with *outname* and one or more *modulename*s, only publishes one
+javascript module (including writing compressed versions) of the given
+outname, and it includes 'base' as well as all the specified module
+names.
+
+with no arguments, publishes 'browser' with all modules intended for use
+in the browser, 'console' with everything intended for the console, and
+<name>-standalone for each individual module (these standalones do not
+include 'base', so if you are going to use them you will need to first
+include base-standalone).
+EOF
+}
+
+if [ $1 ]; then
+	if [ $2 ]; then # custom combination
+		out=$1
+		shift
+		args=$SRC/base.js
+		for name in $@; do
+			if [ `basename $name .js` != base ]; then
+				args+=" $SRC/`basename $name .js`.js"
+			fi
+		done
+		publish $out $args
+	else
+		usage
+	fi
+else
 	# console-ready
 	publish console $SRC/base.js `grep -E '^\/\/context:console' $SRC/* | cut -d: -f1 | sort`
 
