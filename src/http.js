@@ -74,13 +74,14 @@ var ms_xml_types = [
 ];
 function makeXHR() {
   var i;
-  if (window.ActiveXObject) {
+  if (window.XMLHttpRequest) return new XMLHttpRequest();
+  else if (window.ActiveXObject) {
     for (i = 0; i < ms_xml_types.length; i++) {
       try { return new ActiveXObject(ms_xml_types[i]); }
       catch (e) {}
     }
   }
-  return window.XMLHttpRequest ? new XMLHttpRequest() : null;
+  return null;
 };
 
 function parseHeaders(raw) {
