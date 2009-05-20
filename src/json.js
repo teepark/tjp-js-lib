@@ -372,27 +372,6 @@ TJP.json.load = TJP.json.decode = TJP.json.parse = function(data) {
   return parse_tokens(tokens);
 };
 
-function gettype(obj) {
-  var dumbtype = typeof obj;
-  switch(dumbtype) {
-    case "number":
-      if (isNaN(obj)) return "NaN";
-    case "string":
-    case "boolean":
-    case "undefined":
-      return dumbtype;
-    case "object":
-      if (obj instanceof Number) return "number";
-      if (obj instanceof String) return "string";
-      if (obj instanceof Boolean) return "boolean";
-      if (obj instanceof Array) return "array";
-      if (obj instanceof Date) return "date";
-      if (obj instanceof RegExp) return "regexp";
-      if (obj === null) return "null";
-      return "object";
-  }
-};
-
 function dump_array(arr) {
   var dumped = [], i;
   for (i = 0; i < arr.length; i++) {
@@ -426,7 +405,7 @@ function dump_string(str) {
 };
 
 TJP.json.dump = TJP.json.encode = function(data) {
-  var type = gettype(data);
+  var type = TJP.base.gettype(data);
   switch(type) {
     case "number":
     case "boolean":

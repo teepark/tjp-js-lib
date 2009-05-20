@@ -25,6 +25,10 @@ base.rtrim(str)
 base.ltrim(str)
   like trim(), but only trimming the left side
 
+base.gettype(obj)
+  return a string representation of the type of an object, a little more
+  specific than the 'typeof' operator
+
 base.sorter(obj, obj)
   the sorting function used throughout the library by default
 */
@@ -94,6 +98,28 @@ TJP.base.rtrim = function(str) {
   var i = str.length;
   while (space_regex.test(str.charAt(--i)));
   return str.slice(0, i + 1);
+};
+
+TJP.base.gettype = function(obj) {
+  var dumbtype = typeof obj;
+  switch(dumbtype) {
+    case "object":
+      if (obj instanceof Number) return "number";
+      if (obj instanceof String) return "string";
+      if (obj instanceof Boolean) return "boolean";
+      if (obj instanceof Array) return "array";
+      if (obj instanceof Date) return "date";
+      if (obj instanceof RegExp) return "regexp";
+      if (obj === null) return "null";
+      return "object";
+    case "number":
+      if (isNaN(obj)) return "NaN";
+    case "string":
+    case "boolean":
+    case "undefined":
+    default:
+      return dumbtype;
+  }
 };
 
 var typeorder = ["number", "string", "object", "undefined"];
