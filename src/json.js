@@ -380,14 +380,6 @@ function dump_array(arr) {
   return dumped.join(',');
 };
 
-function dump_object(obj) {
-  var dumped = [], name;
-  for (name in obj) {
-    dumped.push(name + ":" + TJP.json.dump(obj[name]));
-  }
-  return "{" + dumped.join(',') + "}";
-};
-
 var ADD_SLASHES = {
   "\n": "\\n",
   "\r": "\\r",
@@ -402,6 +394,14 @@ function dump_string(str) {
   str = str.replace('\\', '\\\\', 'g');
   for (from in ADD_SLASHES) str = str.replace(from, ADD_SLASHES[from], 'g');
   return '"' + str + '"';
+};
+
+function dump_object(obj) {
+  var dumped = [], name;
+  for (name in obj) {
+    dumped.push(dump_string(name) + ":" + TJP.json.dump(obj[name]));
+  }
+  return "{" + dumped.join(',') + "}";
 };
 
 TJP.json.dump = TJP.json.encode = function(data) {
