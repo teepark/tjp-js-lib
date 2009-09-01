@@ -34,17 +34,20 @@ var
   guid = 1,
   events = {},
   handleEvent = function(target, type) {
-    var i, rv = true, hs;
+    var i, rv = true, hs, errors = [];
     try {
       target = target || fixEvent(((this.ownerDocument || this.document ||
               this).parentWindow || window).event || {type: type});
     } catch (err) { target = fixEvent({type: type}); }
-    hs = events[target][target.type];
+    hs = (events[target] ? events[target][type] : []) || [];
     for (i in hs) {
       this.handleEvent = hs[i];
-      if (this.handleEvent(target) === false) rv = false;
+      try {
+        if (this.handleEvent(target) === false) rv = false;
+      } catch(e) { errors.push(e); }
     }
     delete this.handleEvent;
+    if (errors.length) throw errors[0];
     return rv;
   };
 
@@ -59,7 +62,7 @@ TJP.event.add = function(target, type, handler) {
   handlers[handler.__guid] = handler;
   target["on" + type] = function(ev) {
     this.handleEvent = handleEvent;
-    return this.handleEvent(ev, type);
+    return this.handleEvent(target, type);
   };
 };
 
@@ -69,5 +72,5 @@ TJP.event.remove = function(target, type, handler) {
 };
 
 TJP.event.dispatch = function(target, type) {
-  if (target["on" + type]) target["on" + type]();
+  if (target["on" + type]) return target["on" + type]();
 };
