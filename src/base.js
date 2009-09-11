@@ -35,11 +35,14 @@ base.sorter(obj, obj)
 /*global TJP*/
 
 function coerce(str) {
-  // a safer eval
+  // like a safer eval
   var as_num;
 
   if (str === "undefined") return undefined;
   if (str === "null") return null;
+  if (str === "NaN") return NaN;
+  if (str === "Infinity") return Infinity;
+  if (str === "-Infinity") return -Infinity;
   as_num = Number(str);
   if (String(as_num) === str) return as_num;
   return str;
