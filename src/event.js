@@ -7,7 +7,8 @@ modified to work with non-HTMLElement targets and custom event types
 ----------------
 
 event.add(targetObj, evName, handlerFunc)
-  add an event listener to targetObj
+  add an event listener to targetObj. the listener function should take
+  3 arguments, the event target, the event type, and a data object
 
 event.remove(targetObj, evName, handlerFunc)
   undo an add
@@ -33,17 +34,17 @@ fixEvent.stopPropagation = function() { this.cancelBubble = true; };
 var
   guid = 1,
   events = {},
-  handleEvent = function(target, type) {
+  handleEvent = function(target, type, data) {
     var i, rv = true, hs, errors = [];
     try {
       target = target || fixEvent(((this.ownerDocument || this.document ||
               this).parentWindow || window).event || {type: type});
     } catch (err) { target = fixEvent({type: type}); }
-    hs = (events[target] ? events[target][type] : []) || [];
+    hs = (events[target] ? events[target][type] : {}) || {};
     for (i in hs) {
       this.handleEvent = hs[i];
       try {
-        if (this.handleEvent(target) === false) rv = false;
+        if (this.handleEvent(target, type, data) === false) rv = false;
       } catch(e) { errors.push(e); }
     }
     delete this.handleEvent;
@@ -60,9 +61,9 @@ TJP.event.add = function(target, type, handler) {
     if (target["on" + type]) handlers[0] = target["on" + type];
   }
   handlers[handler.__guid] = handler;
-  target["on" + type] = function(ev) {
+  target["on" + type] = function(data) {
     this.handleEvent = handleEvent;
-    return this.handleEvent(target, type);
+    return this.handleEvent(target, type, data);
   };
 };
 
@@ -71,6 +72,6 @@ TJP.event.remove = function(target, type, handler) {
     delete events[target][type][handler.__guid];
 };
 
-TJP.event.dispatch = function(target, type) {
-  if (target["on" + type]) return target["on" + type]();
+TJP.event.dispatch = function(target, type, data) {
+  if (target["on" + type]) return target["on" + type](data);
 };
