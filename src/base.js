@@ -1,8 +1,14 @@
 /*
 base - the groundwork
 
+base.mixin(extended, extender)
 base.extend(extended, extender)
   add properties of extender to extended, then return the modified extended
+
+base.object([baseObj[, extender]])
+base.clone([baseObj[, extender]])
+  create a new copy of baseObj (defaults to a new empty object) by means of
+  prototype inheritance, and then add the attributes of extender
 
 base.urlencode(dataObj)
   serialize dataObj's key/value pairs into form-urlencoding
@@ -50,9 +56,18 @@ function coerce(str) {
 
 TJP.base = TJP.base || {};
 
-TJP.base.extend = function(extended, extender) {
+TJP.base.extend = TJP.base.mixin = function(extended, extender) {
   for(var name in extender) extended[name] = extender[name];
   return extended;
+};
+
+TJP.base.object = TJP.base.clone = function() {
+  var toclone = arguments.length ? arguments[0] : {},
+    klass = function(){};
+  klass.prototype = toclone;
+  if (arguments.length > 1)
+    return TJP.base.extend(new klass(), arguments[1]);
+  return new klass();
 };
 
 TJP.base.urlencode = function(dataObj) {
