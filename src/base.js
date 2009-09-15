@@ -135,6 +135,7 @@ TJP.base.gettype = function(obj) {
     case "string":
     case "boolean":
     case "undefined":
+    case "function":
     default:
       return dumbtype;
   }

@@ -422,6 +422,8 @@ TJP.json.dump = TJP.json.encode = function(data) {
       return dump_object(data);
     case "date":
     case "regexp":
+    case "function":
+    default:
       throw new Error("can't serialize a " + type);
   }
 };
