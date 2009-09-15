@@ -1,381 +1,212 @@
 /*
-test - simple unit testing system for javascript
-
-test.Runnable
--------------
-  abstract base class for Suites and Tests
-
-
-test.Suite
-----------
-  a collection of Tests and sub-Suites
-
-  Constructor
-    new Suite(runnables, options)
-      *runnables* is an Array of all contained tests and sub-suites (these can
-        alse be added later).
-      *options* is an optional object with some expected keys (all optional)
-        options.setup is a function that will be called in the suite's scope
-          before it executes
-        options.teardown is a function that will be called in the suite's scope
-          after it has executed
-        options.scope is an object whose key-value pairs will be the start of
-          the suite's scope
-
-  Instance Methods
-    push(runnable)
-    append(runnable)
-      add a Test or Suite to the collection
-
-    walkchildren()
-      produce an array of all tests and suites contained in this suite, and
-      contained in all sub-suites recursively
-
-    walktests()
-      produce an array of all tests in this suite, and in all sub-suites
-      recursively
-
-    walksuites()
-      produce an array of all sub-suites, and sub-sub-suites, etc. recursively
-
-    run()
-      run all tests and sub-suites in the suite, recursively, returning a
-      result object (see below)
-
-
-test.Test
----------
-  a single unit test: contains a function, expected results, and options
-
-  Constructor
-    new Test(name, func, expected, options)
-      *name* is the name of the test (will be used to identify it in results)
-      *func* is the function to run as the test
-      *expected* is the expected result of the function
-      *options* is an optional object with particular expected attributes
-        options.args is an array of the arguments to pass to *func*
-        options.setup is a function to run in the context of the test's scope
-          object right before *func* is run
-        options.teardown is a function to run in the context of the test's
-          scope oject right after *func* is run
-        options.scope is a set of key-value pairs that will be the start of the
-          test's scope
-
-  Instance Methods
-    run()
-      runs *setup* in the context of the test's scope (see below),
-      then starts a timer,
-      then runs *func* in the scope, storing the return value,
-      then stops the timer, recording the number of milliseconds
-      then runs *teardown* in the scope,
-      then compares the result of *func* with the expected value of the test,
-      and returns a result object (see below)
-
-
-Result Objects
---------------
-  Runnable.run() always returns a result object, which can be expected to have
-  the following attributes:
-
-    completed: the runnable finished (always true for Suites)
-
-    result: a constant indicating how the test or Suite finished
-      test.PASS indicates that everything was fine
-      test.FAIL indicates that the Test failed (or one of the runnables in a
-        Suite)
-      test.ERROR indicates that the function in the Test had an Error (or any
-        of the Tests in a Suite)
-
-    time: the time it took the runnable to complete, leaving out the time taken
-      by the overhead of comparing expected and actual results, running setup
-      and teardown functions, etc.
-
-    runnabletype: either Test or Suite (the actual classes)
-
-    runnable: the Test or Suite instance that created the result
-
-
-  result objects from Test.run() have additional attributes:
-
-    expected: the value the Test expected to receive
-
-    produced: the value actually produced by the testing function
-
-    testname: the name of the Test object
-
-  result objects from Suite.run() have additional attributes:
-
-    children: an Array of the result objects corresponding to the Suite's
-      runnables
-
-
-Testing Scope
--------------
-  the *func* passed in to the Test constructor, as well as any setup and
-  teardown functions, all get run in a particular scope ("this" inside the body
-  of the functions).
-
-  when you call run() on a Suite object, it creates its own testing scope and
-  runs the Suite's setup function on it, then it passes that scope down to all
-  its Tests and sub-Suites. the result is that setup() on a Suite can modify
-  the scope of all contained tests.
-
-  when you call run() on a Test, no setup function will run besides the one
-  directly attached to the test.
+test - a simple javascript unit testing system
 */
 
 /*global TJP*/
-//context:browser
-//context:console
 
-function _now() { return (new Date()).getTime(); };
+var test = TJP.test = TJP.test || {},
+  base = TJP.base,
+  event = TJP.event;
 
-function _update(to, from) {
-  for (var name in from) to[name] = from[name];
+// result constants
+test.PASS = "pass";
+test.FAIL = "fail";
+test.ERROR = "error";
+
+function TestEnded() {};
+TestEnded.prototype = new Error();
+
+function getTime() { return (new Date()).getTime(); };
+
+var BaseRunnable = {
+  name: '<no name>',
+
+  setup: function() {},
+  teardown: function() {}
 };
 
-function AssertionError() {};
-AssertionError.prototype = new Error();
+test.Suite = base.clone(BaseRunnable, {
+  children: [],
+  serial: false,
+  type: "suite",
 
-function _assert(condition, error_message) {
-  if (!condition) throw new AssertionError(error_message);
-};
-
-function _compare(a, b) {
-  var i;
-
-  if ((typeof a) !== (typeof b)) return false;
-
-  switch(typeof a) {
-    case "object":
-      if (a === null) return b === null;
-
-      if (a instanceof Array) {
-        if (!(b instanceof Array)) return false;
-          for (i = 0; i < a.length; i++) {
-            if (!_compare(a[i], b[i])) return false;
-          }
-          return true;
-      }
-
-      for (i in a) {
-        if (!_compare(a[i], b[i])) return false;
-      }
-      return true;
-
-    case "number":
-      if (isNaN(a)) return isNaN(b);
-    default:
-      return a === b;
+  execute: function() {
+    startSuiteRun(setupSuite(this));
   }
-};
+});
 
-var PASS = 0,
-    FAIL = 1,
-    ERROR = 2,
-    COMPLETED = 3;
+test.Test = base.clone(BaseRunnable, {
+  runner: function() {},
+  type: "test",
 
-function Runnable() {};
-
-Runnable.prototype.run = function() {
-  var result;
-
-  this.prepare();
-
-  result = this.bare_run();
-
-  this.cleanup();
-
-  this.evaluate(result);
-
-  return result;
-};
-
-function Test(name, run, expected, opts) {
-  opts = opts || {};
-  this.name = name || '<Anonymous Test>';
-  this.runner = run;
-  this.expected = expected;
-  this.args = 'args' in opts ? opts.args : [];
-  this.setup = 'setup' in opts ? opts.setup : null;
-  this.teardown = 'teardown' in opts ? opts.teardown : null;
-  this.starting_scope = 'scope' in opts ? opts.scope : {};
-};
-Test.prototype = new Runnable();
-
-Test.prototype.prepare = function(parent_scope) {
-  var scope = this.scope = _update(this.starting_scope, {});
-
-  _update(scope, parent_scope);
-
-  if (this.setup) this.setup.call(scope);
-};
-
-Test.prototype.bare_run = function() {
-  var starttime, result = {};
-
-  starttime = _now();
-
-  try {
-    result.produced = this.runner.apply(this.scope, this.args);
-
-    result.time = _now() - starttime;
-
-    result.completed = true;
-  } catch (e) {
-    result.time = _now() - starttime;
-
-    result.completed = false;
-    result.error = e;
+  execute: function() {
+    startTestRun(setupTest(this));
   }
+});
 
-  return result;
+var runGuid = 1;
+
+function setupTest(theTest, scope) {
+  scope = scope || {};
+
+  // create the run object
+  var run = {
+    scope: scope,
+    runnable: theTest,
+    guid: runGuid++,
+    runner: theTest.runner,
+    finished: false
+  };
+
+  // add functions for the test's scope
+  scope.end = function(result, msg) {
+    run.finished = true;
+    result = result || test.PASS;
+    event.dispatch(run, "complete", {
+      result: result,
+      time: getTime() - run.started,
+      error: result === test.ERROR ? msg : null,
+      msg: result === test.FAIL ? msg : null
+    });
+    throw new TestEnded();
+  };
+  scope.fail = function(msg) { this.end(test.FAIL, msg); };
+  scope.error = function(err) { this.end(test.ERROR, err); };
+  scope.pass = function() { this.end(); };
+  scope.assert = function(val, msg) { if (!val) this.fail(msg); };
+
+  // call the setup() function on the scope
+  theTest.setup.apply(run.scope);
+
+  // forward the run object's complete as the test's complete
+  event.oneTimer(run, "complete", function(target, type, data) {
+    event.dispatch(theTest, "complete", {
+      type: "test",
+      runnable: theTest,
+      result: data.result,
+      time: data.time,
+      error: data.error,
+      msg: data.msg
+    });
+  });
+
+  return run;
 };
 
-Test.prototype.cleanup = function() {
-  if (this.teardown) this.teardown.call(this.scope);
-
-  delete this.scope;
-};
-
-Test.prototype.evaluate = function(result) {
-  if (!result.completed)
-    result.result = ERROR;
-  else if (_compare(this.expected, result.produced))
-    result.result = PASS;
-  else
-    result.result = FAIL;
-  result.runnabletype = Test;
-  result.runnable = this;
-  result.testname = this.name;
-  result.expected = this.expected;
-};
-
-function Suite(runnables, opts) {
-  var i;
-  opts = opts || {};
-  runnables = runnables || [];
-
-  this.setup = 'setup' in opts ? opts.setup : function() {};
-  this.teardown = 'teardown' in opts ? opts.teardown : function() {};
-  this.starting_scope = 'scope' in opts ? opts.scope : {};
-
-  for (i = 0; i < runnables.length; i++)
-    _assert(runnables[i] instanceof Runnable, "argument #" + (i + 1) +
-        " is not a Runnable")
-
-  this.runnables = runnables.slice();
-};
-Suite.prototype = new Runnable();
-
-Suite.prototype.prepare = function(parent_scope) {
-  var i, scope = this.scope = _update(this.starting_scope, {});
-
-  _update(scope, parent_scope);
-
-  if (this.setup) this.setup.call(scope);
-
-  for (i = 0; i < this.children.length; i++)
-    this.children[i].prepare(scope);
-};
-
-Suite.prototype.bare_run = function() {
+function setupSuite(suite, scope) {
   var i,
-      starttime,
-      result = {
-        'children': [],
-      };
+    run,
+    count,
+    childRun,
+    childRuns = {},
+    result = test.PASS,
+    error = null;
 
-  starttime = _now();
+  // create the run object
+  run = {
+    scope: scope || {},
+    runnable: suite,
+    guid: runGuid++,
+    finished: false,
+  };
 
-  for (i = 0; i < this.runnables.length; i++)
-    result['children'].push(this.runnables[i].bare_run());
+  // call the suite's setup() function
+  suite.setup.apply(run.scope);
 
-  result.time = _now() - starttime;
+  for (i = 0; i < suite.children.length; i++) {
+    child = suite.children[i];
 
-  return result;
-};
+    // call setup(Suite|Test) for each child
+    childRun = (child.type === "suite" ? setupSuite : setupTest)(
+      child,
+      base.clone(run.scope));
 
-Suite.prototype.cleanup = function() {
-  if (this.teardown) this.teardown.call(this.scope);
+    // build a list of the childrens' run objects
+    childRuns[childRun.guid] = childRun;
 
-  delete this.scope;
+    (function(childRun) { // for a stationary "childRun"
+      // listen for the childRun's complete event
+      event.oneTimer(
+        childRun,
+        "complete",
+        function(target, type, data) {
+          if (!(data.runId in childRuns))
+            throw new Error("bad childRun guid")
 
-  for (var i = 0; i < this.children.length; i++)
-    this.children[i].teardown()
-};
+          // clear this out from the list of pending child runs
+          childRuns[data.runId] = undefined;
+          delete childRuns[data.runId];
 
-Suite.prototype.evaluate = function(results) {
-  var i, child;
+          // update the suite run's result as necessary
+          if (data.result === test.ERROR) {
+            result = test.ERROR;
+            error = data.error;
+          }
+          else if (data.result === test.FAIL) result = test.FAIL;
 
-  results.result = PASS;
+          // decrement the count of children to run,
+          // and stop here if this wasn't the last child
+          if (--count) return;
 
-  for (i = 0; i < results.children.length; i++) {
-    result = results.children[i];
-    this.runnables[i].evaluate(result);
-
-    if (result.result === ERROR)
-      results.result = ERROR;
-    else if (results.result !== ERROR && result.result === FAIL)
-      results.result = FAIL;
+          // that was the last child so fire a complete for the suite
+          run.finished = true;
+          event.dispatch(
+            run,
+            "complete",
+            {
+              runId: run.guid,
+              type: "suite",
+              runnable: run.runnable,
+              result: result,
+              time: getTime() - run.started,
+              error: error
+            });
+        });
+    })(childRun);
   }
 
-  results.runnabletype = Suite;
-  results.runnable = this;
-  results.completed = true;
+  // attach a copy of childRuns to the suite run
+  run.children = base.extend({}, childRuns);
+
+  // the count of children to run (decremented above)
+  count = i;
+
+  // forward the run's complete event as the suite's complete event
+  event.oneTimer(run, "complete", function(target, type, data) {
+    event.dispatch(suite, "complete", {
+      type: "suite",
+      runnable: suite,
+      result: data.result,
+      time: data.time,
+      error: data.error
+    });
+  });
+
+  return run;
 };
 
-Suite.prototype.push = Suite.prototype.append = function (runnable) {
-  this.runnables.push(runnable);
-}
-
-Suite.prototype.walkchildren = function(collector) {
-  var i, child;
-  collector = collector || [];
-
-  for (i = 0; i < self.runnables.length; i++) {
-    child = self.runnables[i];
-    collector.push(child);
-    if (child instanceof Suite) child.walkchildren(collector);
-  }
-
-  return collector;
-};
-
-Suite.prototype.walktests = function(collector) {
-  var i, child;
-  collector = collector || [];
-
-  for (i = 0; i < self.runnables.length; i++) {
-    child = self.runnables[i];
-    if (child instanceof Test) collector.push(child);
-    else if (child instanceof Suite) child.walktests(collector);
-  }
-
-  return collector;
-};
-
-Suite.prototype.walksuites = function(collector) {
-  var i, child;
-  collector = collector || [];
-
-  for (i = 0; i < self.runnables.length; i++) {
-    child = self.runnables[i];
-    if (child instanceof Suite) {
-      collector.push(child);
-      child.walksuites(collector);
+function startTestRun(run) {
+  run.started = getTime();
+  try {
+    run.runner.apply(run.scope);
+  } catch (err) {
+    if (!(err instanceof TestEnded)) {
+      run.finished = true;
+      event.dispatch(run, "complete", {
+        result: test.ERROR,
+        time: getTime() - run.started,
+        error: err,
+        msg: null
+      });
     }
   }
-
-  return collector;
 };
 
-TJP.test = TJP.test || {};
-
-TJP.test.Runnable = Runnable;
-TJP.test.Test = Test;
-TJP.test.Suite = Suite;
-
-TJP.test.PASS = PASS;
-TJP.test.FAIL = FAIL;
-TJP.test.ERROR = ERROR;
+function startSuiteRun(run) {
+  var i, child;
+  run.started = getTime();
+  for (i in run.children) {
+    child = run.children[i];
+    (child.type === "test" ? startTestRun : startSuiteRun)(child);
+  }
+};

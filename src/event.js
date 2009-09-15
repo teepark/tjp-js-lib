@@ -2,15 +2,22 @@
 events - a fast, flexible event system for javascript
 
 ----------------
-This file is based on Dean Edwards's addEvent implementation and
-modified to work with non-HTMLElement targets and custom event types
+This file is (now loosely) based on Dean Edwards's addEvent
+implementation and modified to work with non-HTMLElement targets and
+custom event types
 ----------------
 
 event.add(targetObj, evName, handlerFunc)
+event.listen(targetObj, evName, handlerFunc)
   add an event listener to targetObj. the listener function should take
   3 arguments, the event target, the event type, and a data object
 
+event.oneTimer(targetObj, evName, handlerFunc)
+  add an event listener to targetObj (like add/listen), but have it be
+  automatically removed after the first call
+
 event.remove(targetObj, evName, handlerFunc)
+event.unlisten(targetObj, evName, handlerFunc)
   undo an add
 
 event.dispatch(targetObj, evName)
@@ -52,7 +59,7 @@ var
     return rv;
   };
 
-TJP.event.add = function(target, type, handler) {
+TJP.event.add = TJP.event.listen = function(target, type, handler) {
   if (!handler.__guid) handler.__guid = guid++;
   if (!events[target]) events[target] = {};
   var handlers = events[target][type];
@@ -67,9 +74,16 @@ TJP.event.add = function(target, type, handler) {
   };
 };
 
-TJP.event.remove = function(target, type, handler) {
+TJP.event.remove = TJP.event.unlisten = function(target, type, handler) {
   if (events[target] && events[target][type])
     delete events[target][type][handler.__guid];
+};
+
+TJP.event.oneTimer = function(target, type, handler) {
+  TJP.event.listen(target, type, function(target, type, data) {
+    TJP.event.unlisten(target, type, arguments.callee);
+    return handler(target, type, data);
+  });
 };
 
 TJP.event.dispatch = function(target, type, data) {
