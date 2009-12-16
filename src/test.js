@@ -107,7 +107,7 @@ function setupSuite(suite, scope) {
     scope: scope || {},
     runnable: suite,
     guid: runGuid++,
-    finished: false,
+    finished: false
   };
 
   // call the suite's setup() function
