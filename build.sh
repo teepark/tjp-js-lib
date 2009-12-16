@@ -22,6 +22,7 @@ publish () {
 	which jsmin > /dev/null 2>&1 && cat $out | jsmin > $BUILD/`basename $out .js`-min.js
 	which jscompress > /dev/null 2>&1 && cat $out | jscompress > $BUILD/`basename $out .js`-compress.js
 	which jspack > /dev/null 2>&1 && cat $out | jspack > $BUILD/`basename $out .js`-pack.js
+	which jscompile > /dev/null 2>&1 && cat $out | jscompile > $BUILD/`basename $out .js`-compile.js
 }
 
 usage() {
@@ -33,7 +34,7 @@ create a build/ directory and write usable javascript files into it
 
 for every output published, always creates an uncompressed version, then
 also writes a compressed version for each utility found of jsmin,
-jscompress, and jspack.
+jscompress, jspack, and jscompile.
 
 with *outname* and one or more *modulename*s, only publishes one
 javascript module (including writing compressed versions) of the given
