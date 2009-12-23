@@ -1,11 +1,10 @@
 /*
 events - a fast, flexible event system for javascript
 
-----------------
-This file is (now loosely) based on Dean Edwards's addEvent
-implementation and modified to work with non-HTMLElement targets and
-custom event types
-----------------
+------------------------------------------------------------------------
+This file is loosely based on Dean Edwards's addEvent implementation and
+modified to work with non-HTMLElement targets and custom event types
+------------------------------------------------------------------------
 
 event.add(targetObj, evName, handlerFunc)
 event.listen(targetObj, evName, handlerFunc)

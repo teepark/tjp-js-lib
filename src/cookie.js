@@ -69,7 +69,7 @@ TJP.cookie.set = function(name, value, options) {
   expdate = Date.parse(options.expires);
   if ((typeof options['max-age']) !== "number" && !isNaN(expdate)) {
     options['max-age'] = Math.round((expdate -
-        new Date().getTime()) / 1000);
+        (new Date()).getTime()) / 1000);
   }
   delete options.expires;
 
