@@ -1,12 +1,12 @@
 /*
 base - the groundwork
 
-base.mixin(extended, extender)
 base.extend(extended, extender)
+base.mixin(extended, extender)
   add properties of extender to extended, then return the modified extended
 
-base.object([baseObj[, extender]])
 base.clone([baseObj[, extender]])
+base.object([baseObj[, extender]])
   create a new copy of baseObj (defaults to a new empty object) by means of
   prototype inheritance, and then add the attributes of extender
 
@@ -33,11 +33,27 @@ base.ltrim(str)
 
 base.gettype(obj)
   return a string representation of the type of an object, a little more
-  specific than the 'typeof' operator
+  specific than the 'typeof' operator. strings it might return:
+    array
+    boolean
+    date
+    function
+    NaN
+    null
+    number
+    object
+    regexp
+    string
+    undefined
+
+base.deepcompare(obj, obj)
+  compare objects for equality, including recursively comparing contained
+  data in arrays and objects
 
 base.sorter(obj, obj)
   the sorting function used throughout the library by default
 */
+
 /*global TJP*/
 
 function coerce(str) {
@@ -56,7 +72,7 @@ function coerce(str) {
 
 TJP.base = TJP.base || {};
 
-TJP.base.extend = TJP.base.mixin = function(extended, extender) {
+var extend = TJP.base.extend = TJP.base.mixin = function(extended, extender) {
   for(var name in extender) extended[name] = extender[name];
   return extended;
 };
@@ -66,7 +82,7 @@ TJP.base.object = TJP.base.clone = function() {
     klass = function(){};
   klass.prototype = toclone;
   if (arguments.length > 1)
-    return TJP.base.extend(new klass(), arguments[1]);
+    return extend(new klass(), arguments[1]);
   return new klass();
 };
 
@@ -101,9 +117,8 @@ var ltrim_regex = new RegExp('^\\s\\s*'),
     space_regex = new RegExp('\\s');
 
 TJP.base.trim = function (str) {
-  var i;
   str = str.replace(ltrim_regex, '');
-  i = str.length;
+  var i = str.length;
   while (space_regex.test(str.charAt(--i)));
   return str.slice(0, i + 1);
 };
@@ -118,7 +133,7 @@ TJP.base.rtrim = function(str) {
   return str.slice(0, i + 1);
 };
 
-TJP.base.gettype = function(obj) {
+var gettype = TJP.base.gettype = function(obj) {
   var dumbtype = typeof obj;
   switch(dumbtype) {
     case "object":
@@ -141,8 +156,42 @@ TJP.base.gettype = function(obj) {
   }
 };
 
+var deepcompare = TJP.base.deepcompare = function(a, b) {
+  var i,
+      atype = gettype(a),
+      btype = gettype(b);
+
+  if (atype !== btype) return false;
+  switch(atype) {
+  case "array":
+    if (a.length !== b.length) return false;
+    for (i = 0; i < a.length; i++)
+      if (!deepcompare(a[i], b[i])) return false;
+    return true;
+  case "object":
+    for (i in a)
+      if (!(i in b && deepcompare(a[i], b[i]))) return false;
+    for (i in b)
+      if (!(i in a && deepcompare(a[i], b[i]))) return false;
+    return true;
+  case "boolean":
+  case "number":
+  case "string":
+    return a === b;
+  case "NaN":
+  case "null":
+  case "undefined":
+    return true;
+  case "date":
+    return a.getTime() === b.getTime();
+  case "function":
+  case "regexp":
+    return String(a) === String(b);
+  }
+};
+
 var typeorder = ["number", "string", "object", "undefined"];
-TJP.base.sorter = function(a, b) {
+var sorter = TJP.base.sorter = function(a, b) {
   var i, ta, tb, s, alen, blen;
 
   ta = typeorder.indexOf((typeof a));
@@ -167,7 +216,7 @@ TJP.base.sorter = function(a, b) {
       alen = a.length;
       blen = b.length;
       for (i = 0; i < Math.min(alen, blen); i++) {
-        s = TJP.base.sorter(a[i], b[i]);
+        s = sorter(a[i], b[i]);
         if (s !== 0) return s;
       }
       if (alen > blen) return 1;
