@@ -15,6 +15,10 @@ event.oneTimer(targetObj, evName, handlerFunc)
   add an event listener to targetObj (like add/listen), but have it be
   automatically removed after the first call
 
+event.nTimer(n, targetObj, evName, handlerFunc)
+  add an event listener to targetObj (like add/listen), but have it be
+  automatically removed after the nth call
+
 event.remove(targetObj, [evName[, handlerFunc]])
 event.unlisten(targetObj, evName, handlerFunc)
   undo an add
@@ -88,6 +92,14 @@ TJP.event.remove = TJP.event.unlisten = function(target, type, handler) {
 TJP.event.oneTimer = function(target, type, handler) {
   TJP.event.add(target, type, function(target, type, data) {
     TJP.event.remove(target, type, arguments.callee);
+    return handler(target, type, data);
+  });
+};
+
+TJP.event.nTimer = function(n, target, type, handler) {
+  TJP.event.add(target, type, function(target, type, data) {
+    if (--n <= 0)
+      TJP.event.remove(target, type, arguments.callee);
     return handler(target, type, data);
   });
 };
