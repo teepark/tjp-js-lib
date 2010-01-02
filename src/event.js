@@ -19,8 +19,9 @@ event.remove(targetObj, [evName[, handlerFunc]])
 event.unlisten(targetObj, evName, handlerFunc)
   undo an add
 
-event.dispatch(targetObj, evName)
-  trigger an event yourself
+event.dispatch(targetObj, evName, data)
+  trigger an event yourself. the 3 arguments will be passed straight to
+  any active handler functions.
 */
 
 /*global TJP*/
