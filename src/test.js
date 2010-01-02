@@ -23,13 +23,35 @@ var TestComplete = function(result) {
 };
 TestComplete.prototype = new Error();
 
-var scopeExtension = {
-  'pass': function() { throw new TestComplete(PASS); },
-  'fail': function() { throw new TestComplete(FAIL); },
-  'assert': function(truth) { if (!truth) throw new TestComplete(FAIL); }
+var scopeExtension = function(run) {
+  return {
+    '__run': run,
+    'pass': function() { throw new TestComplete(PASS); },
+    'fail': function() { throw new TestComplete(FAIL); },
+    'assert': function(truth) { if (!truth) throw new TestComplete(FAIL); },
+    'setTimeout': function(func, interval) {
+      var i,
+          scope = this,
+          args = Array.prototype.slice.call(arguments);
+
+      args[0] = function() {
+        try {
+          func.apply(scope, args.slice(2));
+        } catch (error) {
+          if (error instanceof TestComplete)
+            scope.__run.complete(error.result);
+          else
+            scope.__run.complete(ERROR, error);
+        }
+      };
+      setTimeout.apply(null, args);
+    }
+  };
 };
 
 var TestRun = {
+  'suiteMember': false, // default value
+
   'create': function(test) {
     return clone(this, {'template': test, 'func': test.func, 'done': false});
 	},
@@ -45,7 +67,7 @@ var TestRun = {
       dispatch(self.template, type, data);
     });
 
-    extend(scope, scopeExtension);
+    extend(scope, scopeExtension(this));
 	},
 
   'complete': function(result, error) {
@@ -55,11 +77,11 @@ var TestRun = {
     dispatch(this, "finished", {
       'result': result,
       'passed': !result,
-      'time': (new Date()).getTime() - this.started,
+      'time': ((new Date()).getTime() - this.started) / 1000,
       'error': error
     });
 
-    this.tearDown();
+    if (!this.suiteMember) this.tearDown();
   },
 
   'tearDown': function() {
@@ -73,23 +95,28 @@ var TestRun = {
 
     try {
       this.func.apply(this.scope, this.arguments);
-    } catch (err) {
-      if (err instanceof TestComplete) {
-        this.complete(err.result);
-     } else {
-        this.complete(ERROR, err);
-      }
+    } catch (error) {
+      if (error instanceof TestComplete)
+        this.complete(error.result);
+      else
+        this.complete(ERROR, error);
     }
 	}
 };
 
 var SuiteRun = {
+  'suiteMember': false, // default value
+
   'create': function(suite) {
     var i,
+        child,
         children = [];
 
-    for (i = 0; i < suite.children.length; i++)
-      children.push(suite.children[i]._makeRun());
+    for (i = 0; i < suite.children.length; i++) {
+      child = suite.children[i]._makeRun();
+      child.suiteMember = true;
+      children.push(child);
+    }
 
     return clone(this, {'template': suite, 'children': children});
   },
@@ -150,12 +177,12 @@ var SuiteRun = {
     dispatch(this, "finished", {
       'result': foundError ? ERROR: (foundFail ? FAIL : PASS),
       'passed': !result,
-      'time': ended - this.started,
+      'time': (ended - this.started) / 1000,
       'error': foundError ? error : undefined,
       'children': results
     });
 
-    this.tearDown();
+    if (!this.suiteMember) this.tearDown();
   },
 
   'tearDown': function() {
