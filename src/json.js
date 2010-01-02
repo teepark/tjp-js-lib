@@ -405,7 +405,7 @@ function dump_object(obj) {
 };
 
 TJP.json.dump = TJP.json.encode = function(data) {
-  var type = TJP.base.gettype(data);
+  var type = TJP.base.getType(data);
   switch(type) {
     case "number":
     case "boolean":

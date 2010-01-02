@@ -31,7 +31,7 @@ base.rtrim(str)
 base.ltrim(str)
   like trim(), but only trimming the left side
 
-base.gettype(obj)
+base.getType(obj)
   return a string representation of the type of an object, a little more
   specific than the 'typeof' operator. strings it might return:
     array
@@ -46,7 +46,7 @@ base.gettype(obj)
     string
     undefined
 
-base.deepcompare(obj, obj)
+base.deepCompare(obj, obj)
   compare objects for equality, including recursively comparing contained
   data in arrays and objects
 
@@ -133,7 +133,7 @@ TJP.base.rtrim = function(str) {
   return str.slice(0, i + 1);
 };
 
-var gettype = TJP.base.gettype = function(obj) {
+var getType = TJP.base.getType = function(obj) {
   var dumbtype = typeof obj;
   switch(dumbtype) {
     case "object":
@@ -156,23 +156,23 @@ var gettype = TJP.base.gettype = function(obj) {
   }
 };
 
-var deepcompare = TJP.base.deepcompare = function(a, b) {
+var deepCompare = TJP.base.deepCompare = function(a, b) {
   var i,
-      atype = gettype(a),
-      btype = gettype(b);
+      atype = getType(a),
+      btype = getType(b);
 
   if (atype !== btype) return false;
   switch(atype) {
   case "array":
     if (a.length !== b.length) return false;
     for (i = 0; i < a.length; i++)
-      if (!deepcompare(a[i], b[i])) return false;
+      if (!deepCompare(a[i], b[i])) return false;
     return true;
   case "object":
     for (i in a)
-      if (!(i in b && deepcompare(a[i], b[i]))) return false;
+      if (!(i in b && deepCompare(a[i], b[i]))) return false;
     for (i in b)
-      if (!(i in a && deepcompare(a[i], b[i]))) return false;
+      if (!(i in a && deepCompare(a[i], b[i]))) return false;
     return true;
   case "boolean":
   case "number":
