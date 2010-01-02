@@ -40,6 +40,7 @@ fixEvent.stopPropagation = function() { this.cancelBubble = true; };
 
 var
   guid = 1,
+  hguid = 1,
   events = {},
   handleEvent = function(target, type, data) {
     var i, rv = true, hs, errors = [];
@@ -47,7 +48,7 @@ var
       target = target || fixEvent(((this.ownerDocument || this.document ||
               this).parentWindow || window).event || {type: type});
     } catch (err) { target = fixEvent({type: type}); }
-    hs = (events[target.__guid] ? events[target.__guid][type] : {}) || {};
+    hs = (events[target.__hguid] ? events[target.__hguid][type] : {}) || {};
     for (i in hs) {
       this.handleEvent = hs[i];
       try {
@@ -61,11 +62,11 @@ var
 
 TJP.event.add = TJP.event.listen = function(target, type, handler) {
   if (!handler.__guid) handler.__guid = guid++;
-  if (!target.__guid) target.__guid = guid++;
-  if (!events[target.__guid]) events[target.__guid] = {};
-  var handlers = events[target.__guid][type];
+  if (!target.__hguid) target.__hguid = hguid++;
+  if (!events[target.__hguid]) events[target.__hguid] = {};
+  var handlers = events[target.__hguid][type];
   if (!handlers) {
-    handlers = events[target.__guid][type] = {};
+    handlers = events[target.__hguid][type] = {};
     if (target["on" + type]) handlers[0] = target["on" + type];
   }
   handlers[handler.__guid] = handler;
@@ -77,11 +78,11 @@ TJP.event.add = TJP.event.listen = function(target, type, handler) {
 
 TJP.event.remove = TJP.event.unlisten = function(target, type, handler) {
   if (type === undefined)
-    delete events[target.__guid];
-  else if (handler === undefined && events[target.__guid])
-    delete events[target.__guid][type]
-  else if (events[target.__guid] && events[target.__guid][type])
-    delete events[target.__guid][type][handler.__guid];
+    delete events[target.__hguid];
+  else if (handler === undefined && events[target.__hguid])
+    delete events[target.__hguid][type]
+  else if (events[target.__hguid] && events[target.__hguid][type])
+    delete events[target.__hguid][type][handler.__guid];
 };
 
 TJP.event.oneTimer = function(target, type, handler) {
