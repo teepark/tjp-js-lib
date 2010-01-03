@@ -54,7 +54,7 @@ var TestRun = {
 
   'create': function(test) {
     return clone(this, {'template': test, 'func': test.func, 'done': false});
-	},
+  },
 
   'setUp': function(scope) {
     var self = this;
@@ -68,7 +68,7 @@ var TestRun = {
     });
 
     extend(scope, scopeExtension(this));
-	},
+  },
 
   'complete': function(result, error) {
     if (this.done) return;
@@ -88,7 +88,7 @@ var TestRun = {
     this.template.tearDown.call(this.scope);
 
     delete this.scope;
-	},
+  },
 
   'run': function() {
     this.started = (new Date()).getTime();
