@@ -26,26 +26,15 @@ TestComplete.prototype = new Error();
 var scopeExtension = function(run) {
   return {
     '__run': run,
-    'pass': function() { throw new TestComplete(PASS); },
-    'fail': function() { throw new TestComplete(FAIL); },
-    'assert': function(truth) { if (!truth) throw new TestComplete(FAIL); },
-    'setTimeout': function(func, interval) {
-      var i,
-          scope = this,
-          args = Array.prototype.slice.call(arguments);
 
-      args[0] = function() {
-        try {
-          func.apply(scope, args.slice(2));
-        } catch (error) {
-          if (error instanceof TestComplete)
-            scope.__run.complete(error.result);
-          else
-            scope.__run.complete(ERROR, error);
-        }
-      };
-      setTimeout.apply(null, args);
-    }
+    /* this will be swapped out once the original function returns */
+    'complete': function(result) { throw new TestComplete(result); },
+
+    'pass': function() { this.complete(PASS); },
+
+    'fail': function() { this.complete(FAIL); },
+
+    'assert': function(truth) { if (!truth) this.complete(FAIL); }
   };
 };
 
@@ -91,6 +80,9 @@ var TestRun = {
   },
 
   'run': function() {
+    var self = this,
+        caughtError = false;
+
     this.started = (new Date()).getTime();
 
     try {
@@ -101,7 +93,10 @@ var TestRun = {
       else
         this.complete(ERROR, error);
     }
-	}
+
+    if (!caughtError)
+      this.scope.complete = function(result) { self.complete(result); };
+  }
 };
 
 var SuiteRun = {
