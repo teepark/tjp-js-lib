@@ -80,25 +80,29 @@ var TestRun = {
   },
 
   'run': function() {
-    var self = this,
-        caughtError = false;
-
     this.started = (new Date()).getTime();
 
     try {
       this.func.apply(this.scope, this.arguments);
     } catch (error) {
-      caughtError = true;
       if (error instanceof TestComplete)
         this.complete(error.result, null, error.message);
       else
         this.complete(ERROR, error);
+      return;
     }
 
-    if (!caughtError)
-      this.scope.complete = function(result, msg) {
-        self.complete(result, null, msg);
-      };
+    /* this relies on a somewhat tenuous assumption:
+    javascript engines are typically single-threaded, so that responses to
+    async events and timers will never trigger until all sync code is finished.
+    we rely on that property here - if the test function returns without having
+    thrown a TestComplete, we assume that we can run more code here before the
+    async completion ever triggers. this is the best we can do to determine
+    whether a test is sync or async without explicitly having to be told. */
+    var self = this;
+    this.scope.complete = function(result, msg) {
+      self.complete(result, null, msg);
+    };
   }
 };
 
