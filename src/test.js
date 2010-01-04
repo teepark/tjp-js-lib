@@ -29,7 +29,7 @@ var scopeExtension = function(run) {
     /* this will be swapped out once the original function returns */
     'complete': function(result, msg) { throw new TestComplete(result, msg); },
 
-    'pass': function() { this.complete(PASS); },
+    'pass': function(msg) { this.complete(PASS, msg); },
 
     'fail': function(msg) { this.complete(FAIL, msg); },
 
