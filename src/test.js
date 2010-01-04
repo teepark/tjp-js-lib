@@ -17,24 +17,23 @@ var PASS = test.PASS = 0,
     FAIL = test.FAIL = 1,
     ERROR = test.ERROR = 2;
 
-var TestComplete = function(result) {
+var TestComplete = function(result, message) {
   this.result = result;
+  this.message = message;
   this.name = "TestComplete";
 };
 TestComplete.prototype = new Error();
 
 var scopeExtension = function(run) {
   return {
-    '__run': run,
-
     /* this will be swapped out once the original function returns */
-    'complete': function(result) { throw new TestComplete(result); },
+    'complete': function(result, msg) { throw new TestComplete(result, msg); },
 
     'pass': function() { this.complete(PASS); },
 
-    'fail': function() { this.complete(FAIL); },
+    'fail': function(msg) { this.complete(FAIL, msg); },
 
-    'assert': function(truth) { if (!truth) this.complete(FAIL); }
+    'assert': function(truth, msg) { if (!truth) this.complete(FAIL, msg); }
   };
 };
 
@@ -59,7 +58,7 @@ var TestRun = {
     extend(scope, scopeExtension(this));
   },
 
-  'complete': function(result, error) {
+  'complete': function(result, error, msg) {
     if (this.done) return;
     this.done = true;
 
@@ -67,7 +66,8 @@ var TestRun = {
       'result': result,
       'passed': !result,
       'time': ((new Date()).getTime() - this.started) / 1000,
-      'error': error
+      'error': error,
+      'message': msg
     });
 
     if (!this.suiteMember) this.tearDown();
@@ -88,14 +88,17 @@ var TestRun = {
     try {
       this.func.apply(this.scope, this.arguments);
     } catch (error) {
+      caughtError = true;
       if (error instanceof TestComplete)
-        this.complete(error.result);
+        this.complete(error.result, null, error.message);
       else
         this.complete(ERROR, error);
     }
 
     if (!caughtError)
-      this.scope.complete = function(result) { self.complete(result); };
+      this.scope.complete = function(result, msg) {
+        self.complete(result, null, msg);
+      };
   }
 };
 
