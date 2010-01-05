@@ -1,5 +1,81 @@
 /*
 test - simple asyncronous unit testing for javascript
+
+test.test(func, options)
+  creates and returns a test object with func as the test function and other
+  configuration from attributes of the options argument:
+    - arguments: an array of arguments to pass to the test function
+    - setUp: a function to run before the test starts
+    - tearDown: a function to run after the test finishes
+
+test.suite(children, options)
+  creates and returns a suite object, wrapping an array of tests and/or suites.
+  configuration is pulled from attributes of the options argument:
+    - setUp: a function to run before any of the suite children are started
+    - tearDown: a function to run after all children have finished
+
+
+test objects
+------------
+run()
+  executes the test function wrapped in setUp/tearDown
+
+  when the test function finishes (and before tearDown), a "finished" event is
+  dispatched from the test object. the data object in this event has attributes
+  about the test run.
+    - result: either test.PASS, test.FAIL or test.ERROR
+    - passed: boolean, true if result is PASS, false otherwise
+    - time: the time in seconds the test function took
+    - error: if result is ERROR, this is the error object
+    - message: any messages passed via scope.pass(), .fail() or .assert()
+
+
+suite objects
+-------------
+addChild(child)
+  adds a child, which must be a test or a suite
+
+run()
+  executes all the children's run functions, wrapped in the suite's setUp and
+  tearDown functions.
+
+  when all the children have finished, the suite dispatches a "finished" event
+  in which the data object describes the suite run as a whole
+    - result: either test.PASS, test.FAIL or test.ERROR. If any child results
+        in ERROR so does the whole suite, and the suite only PASSes if all
+        children do
+    - passed: boolean, true if result is PASS, false otherwise
+    - time: the time in seconds the run took (excluding setUp/tearDown phases)
+    - children: an array of data objects like this one, one for each child
+
+
+scope of functions
+------------------
+all functions passed into the testing framework (testing functions and test and
+scope setUps and tearDowns) are run in a particular scope, meaning that the
+special variable "this" has a few useful attributes.
+
+when a test is run directly a scope object is created, the setUp function (if
+any) is run in that scope, the testing function is run in that same scope, and
+finally so is the tearDown function once the test finishes.
+
+in addition to any attributes added by the setUp function, the scope object has
+a few methods that are always accessible (and, in fact, will overwrite
+attributes of the same names that were set in setUp):
+
+  - pass(message)
+      end the test successfully, optionally passing through a message
+  - fail(message)
+      end the test unsuccessfully, optionally passing through a message
+  - assert(truth, message)
+      if *truth* is false-ish, ends the test as with fail
+
+when a suite is run, its setUp is run in a new scope, and then for each child a
+clone of the scope (with modifications from setUp) is made and used as the
+scope for that child. the result is that suite.setUp modifications can be seen
+in each child, but not vice-versa, and one child's setUp modifications can't be
+seen in any other child.
+
 */
 
 /*global TJP*/
@@ -115,7 +191,7 @@ var SuiteRun = {
         children = [];
 
     for (i = 0; i < suite.children.length; i++) {
-      child = suite.children[i]._makeRun();
+      child = makeRun(suite.children[i]);
       child.suiteMember = true;
       children.push(child);
     }
@@ -126,7 +202,6 @@ var SuiteRun = {
   'setUp': function(scope) {
     var i,
         self = this,
-        suiteSetUp = this.template.setUp,
         child,
         children = this.children,
         run = this; // for closures below
@@ -135,7 +210,7 @@ var SuiteRun = {
     this.results = new Array(children.length);
     this.doneCount = 0;
 
-    if (suiteSetUp) suiteSetUp.call(scope);
+    this.template.setUp.call(scope);
 
     for (i = 0; i < children.length; i++) {
       child = children[i];
@@ -160,7 +235,6 @@ var SuiteRun = {
     var i,
         foundFail = false,
         foundError = false,
-        error,
         result,
         results = this.results,
         ended = (new Date()).getTime();
@@ -169,7 +243,6 @@ var SuiteRun = {
       result = results[i];
       if (result.result === ERROR) {
         foundError = true;
-        error = result.error;
         break;
       } else if (result.result === FAIL) {
         foundFail = true;
@@ -180,7 +253,6 @@ var SuiteRun = {
       'result': foundError ? ERROR: (foundFail ? FAIL : PASS),
       'passed': !result,
       'time': (ended - this.started) / 1000,
-      'error': foundError ? error : undefined,
       'children': results
     });
 
@@ -207,17 +279,21 @@ var SuiteRun = {
 
     this.started = (new Date()).getTime();
 
-    for (i = 0; i < children.length; i++) {
+    for (i = 0; i < children.length; i++)
       children[i].run();
-    }
   }
 };
 
-var Runnable = {
-  '_makeRun': function() {
-    return this._runType.create(this);
-  },
+var runTypes = {
+  'test': TestRun,
+  'suite': SuiteRun
+};
 
+function makeRun(runnable) {
+  return runTypes[runnable.runType].create(runnable);
+}
+
+var Runnable = {
   'run': function() {
     var run,
         self = this;
@@ -225,15 +301,15 @@ var Runnable = {
     if (!TJP.event)
       throw new Error("TJP.test requires TJP.event");
 
-    run = this._makeRun();
+    run = makeRun(this);
     run.setUp({});
 
     run.run();
   }
 };
 
-var TestObject = clone(Runnable, {
-  '_runType': TestRun,
+var Test = clone(Runnable, {
+  '_runType': 'test',
 
   'create': function(func, options) {
     options = options || {};
@@ -247,8 +323,8 @@ var TestObject = clone(Runnable, {
   }
 });
 
-var SuiteObject = clone(Runnable, {
-  '_runType': SuiteRun,
+var Suite = clone(Runnable, {
+  '_runType': 'suite',
 
   'create': function(children, options) {
     options = options || {};
@@ -266,9 +342,9 @@ var SuiteObject = clone(Runnable, {
 });
 
 test.test = function(func, options) {
-  return TestObject.create(func, options);
+  return Test.create(func, options);
 };
 
 test.suite = function(children, options) {
-  return SuiteObject.create(children, options);
+  return Suite.create(children, options);
 };
