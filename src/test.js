@@ -7,18 +7,14 @@ test.test(func, options)
     - arguments: an array of arguments to pass to the test function
     - setUp: a function to run before the test starts
     - tearDown: a function to run after the test finishes
-
-test.syncTest(func, options)
-  the same testing function and options as test.test, but the resulting test
-  will ignore any asyncronous action after the testing function has returned.
-  if the testing function returns without any explicit failures or passes, then
-  it passes at that point.
+    - sync: automatically pass the test when the testing function returns
 
 test.suite(children, options)
   creates and returns a suite object, wrapping an array of tests and/or suites.
   configuration is pulled from attributes of the options argument:
     - setUp: a function to run before any of the suite children are started
     - tearDown: a function to run after all children have finished
+    - sync: automatically pass child tests when their testing functions return
 
 
 test objects
@@ -151,6 +147,7 @@ var TestRun = {
     var self = this;
 
     scope = this.scope = clone(scope);
+    if (this.template.forceSync) scope.__sync = this.template.sync;
 
     this.template.setUp.call(scope);
 
@@ -195,6 +192,8 @@ var TestRun = {
       return;
     }
 
+    if (this.scope.__sync) self.complete(PASS);
+
     /* this relies on a somewhat tenuous assumption:
     javascript engines are typically single-threaded, so that responses to
     async events and timers will never trigger until all sync code is finished.
@@ -234,6 +233,7 @@ var SuiteRun = {
         run = this; // for closures below
 
     scope = this.scope = clone(scope);
+    if (this.template.forceSync) scope.__sync = this.template.sync;
     this.results = new Array(children.length);
     this.doneCount = 0;
 
@@ -345,7 +345,9 @@ var Test = clone(Runnable, {
       'func': func,
       'arguments': options.arguments || [],
       'setUp': options.setUp || function() {},
-      'tearDown': options.tearDown || function() {}
+      'tearDown': options.tearDown || function() {},
+      'sync': options.sync || false,
+      'forceSync': 'sync' in options
     });
   }
 });
@@ -359,7 +361,9 @@ var Suite = clone(Runnable, {
     return clone(this, {
       'children': (children && children.length) ? children.slice() : [],
       'setUp': options.setUp || function() {},
-      'tearDown': options.tearDown || function() {}
+      'tearDown': options.tearDown || function() {},
+      'sync': options.sync || false,
+      'forceSync': 'sync' in options
     });
   },
 
@@ -374,15 +378,4 @@ test.test = function(func, options) {
 
 test.suite = function(children, options) {
   return Suite.create(children, options);
-};
-
-test.syncTest = function(func, options) {
-  return test.test(function() {
-    func.call(this);
-
-    /* up to this point tests have pass()ed and fail()ed and failed assert()s
-    with an exception that was propogated up to the run() call. so if we got
-    this far and we know the test to by syncronous, we have already passed */
-    this.pass();
-  }, options);
 };
