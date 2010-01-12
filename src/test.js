@@ -1,5 +1,5 @@
 /*
-test - simple asyncronous unit testing for javascript
+test - simple (a)syncronous unit testing for javascript
 
 test.test(func, options)
   creates and returns a test object with func as the test function and other
@@ -7,6 +7,12 @@ test.test(func, options)
     - arguments: an array of arguments to pass to the test function
     - setUp: a function to run before the test starts
     - tearDown: a function to run after the test finishes
+
+test.syncTest(func, options)
+  the same testing function and options as test.test, but the resulting test
+  will ignore any asyncronous action after the testing function has returned.
+  if the testing function returns without any explicit failures or passes, then
+  it passes at that point.
 
 test.suite(children, options)
   creates and returns a suite object, wrapping an array of tests and/or suites.
@@ -75,6 +81,27 @@ clone of the scope (with modifications from setUp) is made and used as the
 scope for that child. the result is that suite.setUp modifications can be seen
 in each child, but not vice-versa, and one child's setUp modifications can't be
 seen in any other child.
+
+
+asyncronous test example
+------------------------
+this is a simple test that will just make sure a resource is successfully
+returned from the server. the testing function will return early, but once
+either the success or failure functions is called, the test is completed.
+
+var test = TJP.test.test(function() {
+  var test_scope = this;
+
+  TJP.http.get({
+    url: "/some_resource.xml",
+    success: function(response) {
+      test_scope.pass();
+    },
+    failure: function(response) {
+      test_scope.fail();
+    }
+  });
+})
 
 */
 
@@ -347,4 +374,15 @@ test.test = function(func, options) {
 
 test.suite = function(children, options) {
   return Suite.create(children, options);
+};
+
+test.syncTest = function(func, options) {
+  return test.test(function() {
+    func.call(this);
+
+    /* up to this point tests have pass()ed and fail()ed and failed assert()s
+    with an exception that was propogated up to the run() call. so if we got
+    this far and we know the test to by syncronous, we have already passed */
+    this.pass();
+  }, options);
 };
