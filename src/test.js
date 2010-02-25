@@ -50,6 +50,11 @@ run()
     - time: the time in seconds the run took (excluding setUp/tearDown phases)
     - children: an array of data objects like this one, one for each child
 
+  suite.run supports a single options argument, which should be an object that
+  can have a "randomize" key. if the corresponding value is true(ish), the
+  children will be randomized, and {randomize: true} will be passed on to child
+  suites.
+
 
 scope of functions
 ------------------
@@ -300,14 +305,17 @@ var SuiteRun = {
     delete this.scope;
   },
 
-  'run': function() {
+  'run': function(options) {
     var i,
         children = this.children;
+
+    if (options && options.randomize)
+      randomize(children);
 
     this.started = (new Date()).getTime();
 
     for (i = 0; i < children.length; i++)
-      children[i].run();
+      children[i].run.apply(children[i], arguments);
   }
 };
 
@@ -331,7 +339,7 @@ var Runnable = {
     run = makeRun(this);
     run.setUp({});
 
-    run.run();
+    run.run.apply(run, arguments);
   }
 };
 
@@ -351,6 +359,16 @@ var Test = clone(Runnable, {
     });
   }
 });
+
+function randomize(arr) {
+  var i, r, temp;
+  for (i = arr.length; i > 0; i--) {
+    r = Math.floor(Math.random() * i);
+    temp = arr[i - 1];
+    arr[i - 1] = arr[r];
+    arr[r] = temp;
+  }
+}
 
 var Suite = clone(Runnable, {
   '_runType': 'suite',
