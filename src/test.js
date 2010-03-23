@@ -361,9 +361,9 @@ var Test = clone(Runnable, {
 });
 
 function randomize(arr) {
-  var i, r, temp;
-  for (i = arr.length; i > 0; i--) {
-    r = Math.floor(Math.random() * i);
+  var i, r, temp, l = arr.length;
+  for (i = l; i > 0; i--) {
+    r = Math.floor(Math.random() * l);
     temp = arr[i - 1];
     arr[i - 1] = arr[r];
     arr[r] = temp;
