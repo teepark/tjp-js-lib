@@ -61,7 +61,7 @@ TJP.bisect.bisect_right = function(arr, item) {
   var i, o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]),
     indexFound = findIndex(arr, item, o);
   if (!indexFound[1]) return indexFound[0];
-  for (i = indexFound[0] + 1; arr[i] === item && i < arr.length; i++);
+  for (i = indexFound[0] + 1; i < arr.length && !TJP.base.sorter(arr[i], item); i++);
   return i;
 };
 
@@ -69,8 +69,8 @@ TJP.bisect.bisect_left = function(arr, item) {
   var i, o = TJP.base.extend(TJP.base.extend({}, defaults), arguments[2]),
     indexFound = findIndex(arr, item, o);
   if (!indexFound[1]) return indexFound[0];
-  for (i = indexFound[0] - 1; arr[i] === item && i >= 0; i--);
-  return i;
+  for (i = indexFound[0]; i >= 0 && !TJP.base.sorter(arr[i], item); i--);
+  return i + 1;
 };
 
 TJP.bisect.bisect = TJP.bisect.bisect_right;
