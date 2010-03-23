@@ -156,6 +156,14 @@ var getType = TJP.base.getType = function(obj) {
   }
 };
 
+var indexOf = TJP.base.indexOf = function(arr, item) {
+  if (arr.indexOf) return arr.indexOf(item);
+  for (var i = 0; i < arr.length; i++)
+    if (arr[i] === item)
+      return i;
+  return -1;
+};
+
 var deepCompare = TJP.base.deepCompare = function(a, b) {
   var i,
       atype = getType(a),
@@ -194,8 +202,8 @@ var typeorder = ["number", "string", "object", "undefined"];
 var sorter = TJP.base.sorter = function(a, b) {
   var i, ta, tb, s, alen, blen;
 
-  ta = typeorder.indexOf((typeof a));
-  tb = typeorder.indexOf((typeof b));
+  ta = indexOf(typeorder, typeof a);
+  tb = indexOf(typeorder, typeof b);
   if (ta !== tb) return ta - tb;
 
   switch (typeof a) {
