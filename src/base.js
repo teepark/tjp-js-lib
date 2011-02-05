@@ -79,11 +79,14 @@ var extend = TJP.base.extend = TJP.base.mixin = function(extended, extender) {
 
 TJP.base.object = TJP.base.clone = function() {
   var toclone = arguments.length ? arguments[0] : {},
-    klass = function(){};
+      klass = function(){},
+      obj;
   klass.prototype = toclone;
   if (arguments.length > 1)
-    return extend(new klass(), arguments[1]);
-  return new klass();
+    obj = extend(new klass(), arguments[1]);
+  else obj = new klass();
+  if (obj.init) obj.init();
+  return obj;
 };
 
 TJP.base.urlencode = function(dataObj) {
