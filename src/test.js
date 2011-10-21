@@ -197,7 +197,7 @@ var TestRun = {
       return;
     }
 
-    if (this.scope.__sync) self.complete(PASS);
+    if (this.scope.__sync) this.complete(PASS);
 
     /* this relies on a somewhat tenuous assumption:
     javascript engines are typically single-threaded, so that responses to
@@ -325,7 +325,7 @@ var runTypes = {
 };
 
 function makeRun(runnable) {
-  return runTypes[runnable.runType].create(runnable);
+  return runTypes[runnable._runType].create(runnable);
 }
 
 var Runnable = {

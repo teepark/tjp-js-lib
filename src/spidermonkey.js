@@ -1,5 +1,4 @@
 /*global TJP,print,readline*/
-//context:console
 
 TJP.spidermonkey = TJP.spidermonkey || {};
 

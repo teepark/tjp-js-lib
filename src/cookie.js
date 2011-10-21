@@ -45,11 +45,11 @@ var defaultOptions = {
 defaultOptions["max-age"] = null;
 
 TJP.cookie.get = function(name) {
-  var i, pairs, pair, result = {};
+  var i, pairs, pair;
   pairs = document.cookie.split("; ");
   for (i = 0; i < pairs.length; i++) {
     pair = pairs[i].split("=");
-    if (pair[0] === name) return pair[1];
+    if (pair[0] === name) return decodeURIComponent(pair[1]);
   }
   return null;
 };
@@ -65,6 +65,7 @@ TJP.cookie.set = function(name, value, options) {
 
   options = TJP.base.extend(TJP.base.extend({}, defaultOptions),
       options || {});
+  value = encodeURIComponent(value);
 
   expdate = Date.parse(options.expires);
   if ((typeof options['max-age']) !== "number" && !isNaN(expdate)) {

@@ -22,7 +22,7 @@ publish () {
 	which jsmin > /dev/null 2>&1 && cat $out | jsmin > $BUILD/`basename $out .js`-min.js
 	which jscompress > /dev/null 2>&1 && cat $out | jscompress > $BUILD/`basename $out .js`-compress.js
 	which jspack > /dev/null 2>&1 && cat $out | jspack > $BUILD/`basename $out .js`-pack.js
-	which jscompile > /dev/null 2>&1 && cat $out | jscompile > $BUILD/`basename $out .js`-compile.js
+	#which jscompile > /dev/null 2>&1 && cat $out | jscompile > $BUILD/`basename $out .js`-compile.js
 }
 
 usage() {

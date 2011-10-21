@@ -129,21 +129,30 @@ TJP.functional.any = function(func, arr) {
 };
 
 TJP.functional.partial = function(func) {
-  var outer = arguments;
+  var aps = Array.prototype.slice,
+      outer = aps.call(arguments, 1);
   return function() {
-    var i, args = Array.prototype.slice.call(outer, 1);
-    for (i = 0; i < arguments.length; i++) args.push(arguments[i]);
-    return func.apply(null, args);
+    return func.apply(null, outer.concat(aps.call(arguments)));
   };
 };
 
 TJP.functional.revpartial = function(func) {
-  var outer = arguments;
+  var aps = Array.prototype.slice,
+      apc = Array.prototype.concat,
+      outer = aps.call(arguments, 1).reverse();
   return function() {
-    var i;
-    for (i = outer.length - 1; i > 0; i--)
-      Array.prototype.push.call(arguments, outer[i]);
-    return func.apply(null, arguments);
+    return func.apply(null, apc.apply(arguments, outer));
+  };
+};
+
+var curry = TJP.functional.curry = function(func, loaded) {
+  var aps = Array.prototype.slice;
+  loaded = loaded === undefined ? [] : loaded;
+  return function() {
+    var args = loaded.concat(aps.apply(arguments));
+    if (args.length < func.length)
+      return curry(func, args);
+    return func.apply(null, args);
   };
 };
 

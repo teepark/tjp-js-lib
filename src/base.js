@@ -78,13 +78,22 @@ var extend = TJP.base.extend = TJP.base.mixin = function(extended, extender) {
 };
 
 TJP.base.object = TJP.base.clone = function() {
-  var toclone = arguments.length ? arguments[0] : {},
-      klass = function(){},
-      obj;
-  klass.prototype = toclone;
-  if (arguments.length > 1)
-    obj = extend(new klass(), arguments[1]);
-  else obj = new klass();
+  var klass, obj, i;
+
+  if (!arguments.length) return {};
+
+  if (Object.create)
+    obj = Object.create.apply(null, Array.prototype.slice.call(arguments));
+  else {
+    klass = function() {};
+    klass.prototype = arguments[0];
+    obj = new klass();
+    if (arguments.length > 1) {
+      for (i = arguments.length - 1; i; --i)
+        extend(obj, arguments[i]);
+    }
+  }
+
   if (obj.init) obj.init();
   return obj;
 };
